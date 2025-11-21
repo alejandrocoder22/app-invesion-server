@@ -17,7 +17,8 @@ const countries = [
   'Portugal',
   'Finland',
   'Switzerland',
-  'Denmark'
+  'Denmark',
+  'Chile'
 ]
 
 export default countries
