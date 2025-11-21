@@ -1,0 +1,99 @@
+vname: Deploy Backend to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --prod
+
+      - name: Create temp directory on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            mkdir -p /tmp/deploy-backend
+
+      - name: Copy files to server (excluding node_modules)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: ".,!node_modules,!.git"
+          target: "/tmp/deploy-backend/"
+          strip_components: 0
+
+      - name: Deploy and restart server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            echo "=== Backup .env file ==="
+            if [ -f "/home/alexdev/app/invesion_app/server/.env" ]; then
+              cp /home/alexdev/app/invesion_app/server/.env /tmp/.env-backup
+              echo ".env backed up"
+            fi
+
+            echo "=== Remove old files (except .env) ==="
+            cd /home/alexdev/app/invesion_app/server
+            shopt -s extglob
+            rm -rf !(.env)
+
+            echo "=== Copy new files ==="
+            cp -r /tmp/deploy-backend/. /home/alexdev/app/invesion_app/server/
+
+            echo "=== Restore .env ==="
+            if [ -f "/tmp/.env-backup" ]; then
+              cp /tmp/.env-backup /home/alexdev/app/invesion_app/server/.env
+              rm /tmp/.env-backup
+              echo ".env restored"
+            fi
+
+            echo "=== Install production dependencies ==="
+            cd /home/alexdev/app/invesion_app/server
+            pnpm install --prod
+
+            echo "=== Restart server with PM2 ==="
+            if command -v pm2 &> /dev/null; then
+              pm2 restart server || pm2 start index.js --name server
+              pm2 save
+              echo "Server restarted with PM2"
+            else
+              echo "Warning: PM2 not found. Please install PM2 or configure your process manager"
+            fi
+
+            echo "=== Clean temp directory ==="
+            rm -rf /tmp/deploy-backend
+
+            echo "=== Verify deployment ==="
+            ls -la /home/alexdev/app/invesion_app/server/
+
+            echo "✅ Backend deployment completed!"
