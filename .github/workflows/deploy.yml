@@ -56,7 +56,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            SERVER_DIR="/home/alexdev/app/invesion_app/server"
+            SERVER_DIR="/home/alexdev/app-invesion-server"
             TMP_DEPLOY="/tmp/deploy-backend"
 
             # Backup .env if exists
