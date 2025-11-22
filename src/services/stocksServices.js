@@ -8,7 +8,8 @@ import {
   calculateRealFcf,
   calculateWorkingCapital,
   getReinvestMentRate,
-  preparationForHistoricMetrics
+  preparationForHistoricMetrics,
+  calculateCostOfDebt
 } from '../helpers/calculateMetrics.js'
 
 import {
@@ -264,7 +265,7 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
       const totalDebt = Number(stockInfo.total_debt) || 0
 
       const financialDebt = Math.max(0, totalDebt - longTermCapitalLeases - shortTermCapitalLeases)
-      const costOfDebt = (Number(stockInfo.interest_expense) / Number(financialDebt)).toFixed(2)
+      const costOfDebt = calculateCostOfDebt(stockInfo.interest_expense, financialDebt)
 
       const isTTM = index === 10
       const fiscalYear = isTTM ? null : stockInfo.year
@@ -789,7 +790,7 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
     const shortTermCapitalLeases = Number(stockInfo.short_term_capital_leases) || 0
     const totalDebt = Number(stockInfo.total_debt) || 0
     const financialDebt = totalDebt - longTermCapitalLeases - shortTermCapitalLeases
-    const costOfDebt = (Number(stockInfo.interest_expense) / Number(financialDebt)).toFixed(2)
+    const costOfDebt = calculateCostOfDebt(stockInfo.interest_expense, financialDebt)
     const isTTM = index === stockHistoricData.length - 1 && stockHistoricData.length > 1
     const periodType = isTTM ? 'ttm' : 'annual'
     const fiscalYear = isTTM ? null : stockInfo.year
