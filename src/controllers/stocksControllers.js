@@ -483,6 +483,12 @@ const upsertEstimations = async (req, res, next) => {
         message: 'estimations (array) es requerido en el body'
       })
     }
+    if (!estimations.fair_multiple) {
+      return res.status(400).json({
+        status: 'ERROR',
+        message: 'Debes de incluir el multiplo'
+      })
+    }
 
     const query = `
   INSERT INTO stock_estimations (
