@@ -2,6 +2,7 @@ import express from 'express'
 import stockControllers from '../controllers/stocksControllers.js'
 import { validateToken, validateAdmin } from '../middleware/validateToken.js'
 import apicache from 'apicache'
+import validateThesis from '../middleware/validateThesis.js'
 
 const cache = apicache.middleware
 
@@ -43,7 +44,7 @@ router.put('/estimations/:companyId', validateAdmin, stockControllers.upsertEsti
 
 router.post('/', validateAdmin, stockControllers.createCompanyInfo)
 router.post('/year/:companyId', validateAdmin, stockControllers.addNewYear)
-router.post('/thesis/:companyId', validateAdmin, stockControllers.createThesis)
+router.post('/thesis/:companyId', validateAdmin, validateThesis, stockControllers.createThesis)
 router.post('/portfolio/:companyId/:futurePrice', validateToken, stockControllers.addToPortfolio)
 
 // Cron tasks
