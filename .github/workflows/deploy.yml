@@ -59,6 +59,8 @@ jobs:
           script: |
             SERVER_DIR="/home/alexdev/app-invesion-server"
             TMP_DEPLOY="/tmp/deploy-backend"
+            source ~/.bashrc || source ~/.profile || true
+            export PATH="/home/alexdev/.nvm/versions/node/v22.18.0/bin:$PATH"
 
             # Backup .env if exists in src directory
             if [ -f "$SERVER_DIR/src/.env" ]; then
