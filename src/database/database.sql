@@ -1,3 +1,4 @@
+ALTER TABLE income_statements ADD COLUMN cost_of_debt NUMERIC(10,2);
 
 
 CREATE DATABASE invesion_app;
@@ -83,6 +84,7 @@ CREATE TABLE balance_sheets (
     accounts_receivable NUMERIC(20,4),
     accounts_payable NUMERIC(20,4),
     other_intangibles NUMERIC(20,4),
+    cost_of_debt NUMERIC(10,2),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(company_id, fiscal_year)
