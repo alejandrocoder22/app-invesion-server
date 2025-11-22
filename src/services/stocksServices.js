@@ -140,6 +140,7 @@ const getOneStockTenYearsHistoric = (companyId) => query(
         b.accounts_receivable,
         b.accounts_payable,
         b.financial_debt,
+        b.cost_of_debt,
         c.operating_cash_flow,
         c.capital_expenditures,
         c.dividends_paid,
@@ -263,6 +264,7 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
       const totalDebt = Number(stockInfo.total_debt) || 0
 
       const financialDebt = Math.max(0, totalDebt - longTermCapitalLeases - shortTermCapitalLeases)
+      const costOfDebt = (Number(stockInfo.interest_expense) / Number(financialDebt)).toFixed(2)
 
       const isTTM = index === 10
       const fiscalYear = isTTM ? null : stockInfo.year
@@ -289,7 +291,8 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
         Number(stockInfo.goodwill) || 0,
         Number(stockInfo.total_assets) || 0,
         Number(stockInfo.other_intangibles) || 0,
-        financialDebt
+        financialDebt,
+        costOfDebt
       ]
 
       const params = isTTM
@@ -786,7 +789,7 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
     const shortTermCapitalLeases = Number(stockInfo.short_term_capital_leases) || 0
     const totalDebt = Number(stockInfo.total_debt) || 0
     const financialDebt = totalDebt - longTermCapitalLeases - shortTermCapitalLeases
-
+    const costOfDebt = (Number(stockInfo.interest_expense) / Number(financialDebt)).toFixed(2)
     const isTTM = index === stockHistoricData.length - 1 && stockHistoricData.length > 1
     const periodType = isTTM ? 'ttm' : 'annual'
     const fiscalYear = isTTM ? null : stockInfo.year
@@ -812,7 +815,8 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
       Number(stockInfo.total_assets) || 0,
       Number(stockInfo.other_intangibles) || 0,
       financialDebt,
-      periodType
+      periodType,
+      costOfDebt
     ]
   })
 
@@ -850,7 +854,8 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
       total_assets,
       other_intangibles,
       financial_debt,
-      period_type
+      period_type,
+      cost_of_debt
     ) VALUES ${placeholders}
   `
 

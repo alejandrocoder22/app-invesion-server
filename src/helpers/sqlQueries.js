@@ -593,7 +593,8 @@ SET
     total_assets = $19,
     other_intangibles = $20,
     updated_at = NOW(),
-    financial_debt = $21
+    financial_debt = $21,
+    cost_of_debt = $22
 WHERE company_id = $1 AND fiscal_year = $2
 
 `
@@ -619,7 +620,8 @@ SET
     total_assets = $17,
     other_intangibles = $18,
     updated_at = NOW(),
-    financial_debt = $19
+    financial_debt = $19,
+    cost_of_debt = $20
 WHERE company_id = $1 AND period_type = 'ttm'
 
 `
