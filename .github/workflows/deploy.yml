@@ -48,20 +48,21 @@ jobs:
           target: "/tmp/deploy-backend/"
           strip_components: 0
 
-      - name: Safe deploy to server folder (preserves .env, deletes only inside /server)
+      - name: Safe deploy to server folder (preserves .env in src/, deletes only inside /server)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          envPath: /home/alexdev/.nvm/versions/node/v22.18.0/bin
           script: |
             SERVER_DIR="/home/alexdev/app-invesion-server"
             TMP_DEPLOY="/tmp/deploy-backend"
 
-            # Backup .env if exists
-            if [ -f "$SERVER_DIR/.env" ]; then
-              cp "$SERVER_DIR/.env" /tmp/.env-backup
+            # Backup .env if exists in src directory
+            if [ -f "$SERVER_DIR/src/.env" ]; then
+              cp "$SERVER_DIR/src/.env" /tmp/.env-backup
             fi
 
             # Remove only files/folders (except .env) inside target
@@ -70,8 +71,9 @@ jobs:
             # Copy new files
             cp -r $TMP_DEPLOY/. $SERVER_DIR/
 
-            # Restore .env
+            # Restore .env to src directory
             if [ -f /tmp/.env-backup ]; then
+              mkdir -p "$SERVER_DIR/src"
               cp /tmp/.env-backup "$SERVER_DIR/src/.env"
               rm /tmp/.env-backup
             fi
@@ -79,10 +81,10 @@ jobs:
             # Clean up temp
             rm -rf $TMP_DEPLOY
 
-            # Install production dependencies (add --prod for only)
+            # Install production dependencies
             cd "$SERVER_DIR"
-            pnpm install
+            pnpm install --prod
 
             # Restart server with PM2
-              pm2 restart api.invesion.com 
-              pm2 save
+            pm2 restart api.invesion.com
+            pm2 save
