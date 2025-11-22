@@ -208,7 +208,7 @@ CREATE TABLE stock_estimations (
   sale_of_assets NUMERIC(12, 2),
   simple_free_cash_flow NUMERIC(12, 2),
   income_tax_expense NUMERIC(12, 2),
-  financial_debt NUMERIC(12, 2),
+  cost_of_debt NUMERIC(12, 2), // Es en realidad cost of debt
   net_debt_issued NUMERIC(12, 2),
   equity NUMERIC(12, 2),
   net_repurchased_shares NUMERIC(12, 2),
