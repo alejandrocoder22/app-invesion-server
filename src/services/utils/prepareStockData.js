@@ -9,8 +9,8 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
 
     const workingCapital =
        isTtm
-         ? calculateWorkingCapital(stockDataToUpdate[prevIndex].inventories, stockDataToUpdate[prevIndex].accounts_payable, stockDataToUpdate[prevIndex].accounts_receivable, stockDataToUpdate[prevIndex].unearned_revenues, stockDataToUpdate[prevIndex].unearned_revenues_non_current)
-         : calculateWorkingCapital(stockInfo.inventories, stockInfo.accounts_payable, stockInfo.accounts_receivable, stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current)
+         ? calculateWorkingCapital(stockDataToUpdate[prevIndex].accounts_receivable, stockDataToUpdate[prevIndex].inventories, stockDataToUpdate[prevIndex].prepaid_expenses, stockDataToUpdate[prevIndex].accounts_payable, stockDataToUpdate[prevIndex].accrued_expenses)
+         : calculateWorkingCapital(stockInfo.accounts_receivable, stockInfo.inventories, stockInfo.prepaid_expenses, stockInfo.accounts_payable, stockInfo.accrued_expenses)
 
     const fcf = calculateRealFcf(stockInfo, changeInWorkingCapital)
     const maintenanceCapexPercentage = Number((stockInfo?.depreciation_and_amortization) / Number((stockInfo?.capital_expenditures)))

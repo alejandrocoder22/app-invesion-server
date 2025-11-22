@@ -230,15 +230,15 @@ export const calculateNetCashPerShare = (stockHistoricInfo) => {
   ).toFixed(2)
 }
 
-export const calculateWorkingCapital = (inventories = 0, accountsPayable, accountsReceivable, unearnedrevenuesCurrent = 0, unearned_revenues_non_current = 0) => {
-  return (Number(inventories) + Number(accountsReceivable) - Number(accountsPayable) - Number(unearnedrevenuesCurrent) - Number(unearned_revenues_non_current)).toFixed(2)
+export const calculateWorkingCapital = (accounts_receivable, inventories, prepaid_expenses, accounts_payable, accrued_expenses) => {
+  return (Number(accounts_receivable) + Number(inventories) + Number(prepaid_expenses) - Number(accounts_payable) - Number(accrued_expenses)).toFixed(2)
 }
 
 export const calculateChangeInWorkingCapital = (i, stockHistoricData, lastYearWorkingCapital = null) => {
   if (lastYearWorkingCapital) {
-    return calculateWorkingCapital(stockHistoricData[i]?.inventories, stockHistoricData[i]?.accounts_payable, stockHistoricData[i]?.accounts_receivable, stockHistoricData[i]?.unearned_revenues, stockHistoricData[i]?.unearned_revenues_non_current) - Number(lastYearWorkingCapital)
+    return calculateWorkingCapital(stockHistoricData[i]?.accounts_receivable, stockHistoricData[i]?.inventories, stockHistoricData[i]?.prepaid_expenses, stockHistoricData[i]?.accounts_payable, stockHistoricData[i]?.accrued_expenses - Number(lastYearWorkingCapital))
   } else {
-    return i === 0 ? null : calculateWorkingCapital(stockHistoricData[i]?.inventories, stockHistoricData[i]?.accounts_payable, stockHistoricData[i]?.accounts_receivable, stockHistoricData[i]?.unearned_revenues, stockHistoricData[i]?.unearned_revenues_non_current) - calculateWorkingCapital(stockHistoricData[i - 1]?.inventories, stockHistoricData[i - 1]?.accounts_payable, stockHistoricData[i - 1]?.accounts_receivable, stockHistoricData[i - 1]?.unearned_revenues, stockHistoricData[i - 1]?.unearned_revenues_non_current)
+    return i === 0 ? null : calculateWorkingCapital(stockHistoricData[i]?.accounts_receivable, stockHistoricData[i]?.inventories, stockHistoricData[i]?.prepaid_expenses, stockHistoricData[i]?.accounts_payable, stockHistoricData[i]?.accrued_expenses) - calculateWorkingCapital(stockHistoricData[i - 1]?.accounts_receivable, stockHistoricData[i - 1]?.inventories, stockHistoricData[i - 1]?.prepaid_expenses, stockHistoricData[i - 1]?.accounts_payable, stockHistoricData[i - 1]?.accrued_expenses)
   }
 }
 

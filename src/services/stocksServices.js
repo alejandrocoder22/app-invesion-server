@@ -1038,13 +1038,12 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
     const safeReinvestmentRate = isFinite(reinvestmentRate) ? reinvestmentRate : 0
 
     const workingCapital = calculateWorkingCapital(
-      stockInfo.inventories,
-      stockInfo.accounts_payable,
       stockInfo.accounts_receivable,
-      stockInfo.unearned_revenues,
-      stockInfo.unearned_revenues_non_current
+      stockInfo.inventories,
+      stockInfo.prepaid_expenses,
+      stockInfo.accounts_payable,
+      stockInfo.accrued_expenses
     )
-
     const unleaveredFcf = Number(stockInfo.operating_cash_flow) + Number(stockInfo.capital_expenditures)
 
     return [
@@ -1146,7 +1145,7 @@ const createCashFlowStatementReit = async (stockHistoricData, companyId, client,
               stockInfo.repurchased_shares ? stockInfo.repurchased_shares : 0, // repurchased_shares
               null, // change_in_working_capital
               isFinite(getReinvestMentRate(i, stockHistoricData, addYearFcf)) ? getReinvestMentRate(i, stockHistoricData, addYearFcf) : 0, // reinvestment_rate
-              calculateWorkingCapital(stockInfo.inventories, stockInfo.accounts_payable, stockInfo.accounts_receivable, stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current), // working_capital
+              calculateWorkingCapital(stockInfo.accounts_receivable, stockInfo.inventories, stockInfo.prepaid_expenses, stockInfo.accounts_payable, stockInfo.accrued_expenses), // working_capital
               stockInfo.depreciation_and_amortization, // depreciation_and_amortization
               FFO,
               i === 10 ? 'ttm' : 'annual',
@@ -1284,11 +1283,11 @@ const updateTtmCashFlowsStatement = async (stockData, companyId, client, lastYea
   const safeReinvestmentRate = isFinite(reinvestmentRate) ? reinvestmentRate : 0
 
   const workingCapital = calculateWorkingCapital(
-    stockInfo.inventories,
-    stockInfo.accounts_payable,
     stockInfo.accounts_receivable,
-    stockInfo.unearned_revenues,
-    stockInfo.unearned_revenues_non_current
+    stockInfo.inventories,
+    stockInfo.prepaid_expenses,
+    stockInfo.accounts_payable,
+    stockInfo.accrued_expenses
   )
 
   const unleaveredFcf = Number(
