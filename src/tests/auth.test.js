@@ -36,7 +36,7 @@ describe('Tests in auth system', () => {
       .send(payload)
       .set('Content-Type', 'application/json')
     expect(loginResponse.status).toBe(400)
-    expect(loginResponse.body.message).toBe('You must insert username and password')
+    expect(loginResponse.body.message).toBe('Username and password are required')
   })
 
   it('Return 200 token is provided on refresh', async () => {

@@ -33,7 +33,7 @@ describe('Tests in /stocks ', () => {
   it('/stocks/:companyId/questions should update keyQuestions and return 200', async () => {
     const cookie = await loginAndGetToken(request)
     const response = await request
-      .post(`/stocks/${companyId}/questions`)
+      .post(`/stocks/thesis/${companyId}`)
       .set('cookie', cookie)
       .send(questionsData)
 
