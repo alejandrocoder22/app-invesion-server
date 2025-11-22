@@ -24,7 +24,7 @@ jobs:
           node-version: "20"
           cache: "pnpm"
 
-      - name: Install dependencies
+      - name: Install dependencies local
         run: pnpm install --prod
 
       - name: Create temp backend deploy directory
@@ -48,39 +48,52 @@ jobs:
           target: "/tmp/deploy-backend/"
           strip_components: 0
 
-      - name: Safe deploy to server folder (preserves .env in src/, deletes only inside /server)
+      - name: Safe deploy to server folder with path fixes
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envPath: /home/alexdev/.nvm/versions/node/v22.18.0/bin
           script: |
+            #!/bin/bash
+
             SERVER_DIR="/home/alexdev/app-invesion-server"
             TMP_DEPLOY="/tmp/deploy-backend"
+
+            # Cargar entorno bash para variables y PATH
             source ~/.bashrc || source ~/.profile || true
+
+            # Añadir ruta de NVM para pnpm y pm2
             export PATH="/home/alexdev/.nvm/versions/node/v22.18.0/bin:$PATH"
 
-            # Backup .env if exists in src directory
+            echo "Current PATH: $PATH"
+            which pnpm || echo "pnpm not found in PATH"
+            which pm2 || echo "pm2 not found in PATH"
+
+            # Backup .env from src/ if exists
             if [ -f "$SERVER_DIR/src/.env" ]; then
               cp "$SERVER_DIR/src/.env" /tmp/.env-backup
+              echo "✅ .env backed up from src/"
+            else
+              echo "⚠️ .env not found in src/"
             fi
 
-            # Remove only files/folders (except .env) inside target
+            # Clean target directory except .env
             find "$SERVER_DIR" -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +
 
-            # Copy new files
+            # Copy new files from temp deploy dir
             cp -r $TMP_DEPLOY/. $SERVER_DIR/
 
-            # Restore .env to src directory
+            # Restore .env to src/
             if [ -f /tmp/.env-backup ]; then
               mkdir -p "$SERVER_DIR/src"
               cp /tmp/.env-backup "$SERVER_DIR/src/.env"
               rm /tmp/.env-backup
+              echo "✅ .env restored to src/"
             fi
 
-            # Clean up temp
+            # Clean temp folder
             rm -rf $TMP_DEPLOY
 
             # Install production dependencies
@@ -88,5 +101,6 @@ jobs:
             pnpm install --prod
 
             # Restart server with PM2
-            pm2 restart api.invesion.com
+            pm2 restart api.invesion.com || pm2 start src/index.js --name api.invesion.com
             pm2 save
+            echo "✅ Server restarted with PM2"
