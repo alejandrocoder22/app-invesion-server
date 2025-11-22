@@ -1,8 +1,3 @@
-ALTER TABLE income_statements ADD COLUMN interest_income NUMERIC(20,4);
-ALTER TABLE balance_sheets ADD COLUMN prepaid_expenses NUMERIC(20,4);
-ALTER TABLE balance_sheets ADD COLUMN accrued_expenses NUMERIC(20,4);
-
-
 CREATE DATABASE invesion_app;
 
 CREATE TABLE company_info (
