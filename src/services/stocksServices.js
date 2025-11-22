@@ -115,6 +115,7 @@ const getOneStockTenYearsHistoric = (companyId) => query(
         i.net_income,
         i.earnings_per_share,
         i.cost_of_goods_sold,
+        i.interest_income,
         i.operating_income,
         i.dividends_per_share,
         i.diluted_shares_outstanding,
@@ -142,6 +143,8 @@ const getOneStockTenYearsHistoric = (companyId) => query(
         b.accounts_payable,
         b.financial_debt,
         b.cost_of_debt,
+        b.prepaid_expenses,
+        b.accrued_expenses,
         c.operating_cash_flow,
         c.capital_expenditures,
         c.dividends_paid,
@@ -230,7 +233,8 @@ const updateIncomeStatement = async (stockDataToUpdate, companyId, client) => {
         incomeBeforeTax,
         incomeTax,
         periodType,
-        NOPAT
+        NOPAT,
+        Number(stockInfo.interest_income) || 0
       ]
 
       const finalParams = isTTM && !updateIncomeStatementTtmSql.includes('fiscal_year')
@@ -265,8 +269,7 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
       const totalDebt = Number(stockInfo.total_debt) || 0
 
       const financialDebt = Math.max(0, totalDebt - longTermCapitalLeases - shortTermCapitalLeases)
-      const costOfDebt = calculateCostOfDebt(stockInfo.interest_expense, financialDebt)
-
+      const costOfDebt = calculateCostOfDebt(stockInfo.interest_expense, financialDebt) || 0
       const isTTM = index === 10
       const fiscalYear = isTTM ? null : stockInfo.year
       const periodType = isTTM ? 'ttm' : 'annual'
@@ -293,7 +296,10 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
         Number(stockInfo.total_assets) || 0,
         Number(stockInfo.other_intangibles) || 0,
         financialDebt,
-        costOfDebt
+        costOfDebt,
+        Number(stockInfo.prepaid_expenses) || 0,
+        Number(stockInfo.accrued_expenses) || 0
+
       ]
 
       const params = isTTM
@@ -732,11 +738,12 @@ const createIncomeStatemente = async (stockHistoricData, companyId, client) => {
       Number(stockInfo.income_before_taxes) || 0,
       Number(stockInfo.income_tax_expense) || 0,
       periodType,
-      NOPAT
+      NOPAT,
+      Number(stockInfo.interest_income) || 0
     ]
   })
 
-  const columnsPerRow = 14
+  const columnsPerRow = 15
   const placeholders = values.map((_, rowIndex) => {
     const rowPlaceholders = Array.from(
       { length: columnsPerRow },
@@ -762,7 +769,8 @@ const createIncomeStatemente = async (stockHistoricData, companyId, client) => {
       income_before_taxes,
       income_tax_expense,
       period_type,
-      nopat
+      nopat,
+      interest_income
     ) VALUES ${placeholders}
   `
 
@@ -789,7 +797,7 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
     const longTermCapitalLeases = Number(stockInfo.long_term_capital_leases) || 0
     const shortTermCapitalLeases = Number(stockInfo.short_term_capital_leases) || 0
     const totalDebt = Number(stockInfo.total_debt) || 0
-    const financialDebt = totalDebt - longTermCapitalLeases - shortTermCapitalLeases
+    const financialDebt = (totalDebt - longTermCapitalLeases - shortTermCapitalLeases).toFixed(2)
     const costOfDebt = calculateCostOfDebt(stockInfo.interest_expense, financialDebt)
     const isTTM = index === stockHistoricData.length - 1 && stockHistoricData.length > 1
     const periodType = isTTM ? 'ttm' : 'annual'

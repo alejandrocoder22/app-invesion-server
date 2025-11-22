@@ -543,7 +543,8 @@ SET
     income_tax_expense = $12,
     period_type = $13,
     nopat = $14,
-    updated_at = NOW()
+    updated_at = NOW(),
+    interest_income = $15
 WHERE company_id = $1 AND fiscal_year = $2
 
 
@@ -565,7 +566,8 @@ SET
     income_tax_expense = $11,
     period_type = $12,
     nopat = $13,
-    updated_at = NOW()
+    updated_at = NOW(),
+    interest_income = $14
 WHERE company_id = $1 AND period_type= $12
 
 
@@ -594,7 +596,9 @@ SET
     other_intangibles = $20,
     updated_at = NOW(),
     financial_debt = $21,
-    cost_of_debt = $22
+    cost_of_debt = $22,
+    prepaid_expenses = $23,
+    accrued_expenses = $24
 WHERE company_id = $1 AND fiscal_year = $2
 
 `
@@ -621,7 +625,9 @@ SET
     other_intangibles = $18,
     updated_at = NOW(),
     financial_debt = $19,
-    cost_of_debt = $20
+    cost_of_debt = $20,
+    prepaid_expenses = $21,
+    accrued_expenses = $22
 WHERE company_id = $1 AND period_type = 'ttm'
 
 `

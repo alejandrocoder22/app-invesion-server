@@ -29,7 +29,12 @@ const median = arr => {
 }
 
 export const calculateCostOfDebt = (interest_expense, financial_debt) => {
-  return (Number(interest_expense) / Number(financial_debt) * 100).toFixed(2)
+  const expense = Number(interest_expense) || 0
+  const debt = Number(financial_debt) || 0
+
+  if (debt === 0) return '0.00'
+
+  return (expense / debt * 100).toFixed(2)
 }
 
 const calculateCurrentRatio = (stockHistoricInfo) => {

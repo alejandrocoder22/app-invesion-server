@@ -1,4 +1,6 @@
-ALTER TABLE income_statements ADD COLUMN cost_of_debt NUMERIC(10,2);
+ALTER TABLE income_statements ADD COLUMN interest_income NUMERIC(20,4);
+ALTER TABLE balance_sheets ADD COLUMN prepaid_expenses NUMERIC(20,4);
+ALTER TABLE balance_sheets ADD COLUMN accrued_expenses NUMERIC(20,4);
 
 
 CREATE DATABASE invesion_app;
@@ -50,6 +52,7 @@ CREATE TABLE income_statements (
     dividends_per_share NUMERIC(20,4) NOT NULL,
     diluted_shares_outstanding NUMERIC(20,4) NOT NULL,
     interest_expense NUMERIC(20,4),
+    interest_income NUMERIC(20,4),
     income_before_taxes NUMERIC(20,4),
     income_tax_expense NUMERIC(20,4),
     goodwill NUMERIC(20,4),
@@ -73,7 +76,9 @@ CREATE TABLE balance_sheets (
     total_cash NUMERIC(20,4),
     equity NUMERIC(20,4) NOT NULL,
     inventories NUMERIC(20,4),
+    prepaid_expenses NUMERIC(20,4),
     short_term_debt NUMERIC(20,4),
+    accrued_expenses NUMERIC(20,4);
     long_term_debt NUMERIC(20,4),
     total_debt NUMERIC(20,4),
     financial_debt NUMERIC(20,4),
