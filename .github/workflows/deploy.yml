@@ -72,21 +72,19 @@ jobs:
 
             # Restore .env
             if [ -f /tmp/.env-backup ]; then
-              cp /tmp/.env-backup "$SERVER_DIR/.env"
+              cp /tmp/.env-backup "$SERVER_DIR/src/.env"
               rm /tmp/.env-backup
             fi
 
             # Clean up temp
             rm -rf $TMP_DEPLOY
 
-            # Install production dependencies
+            # Install production dependencies (add --prod for only)
             cd "$SERVER_DIR"
-            pnpm install --prod
+            pnpm install
 
             # Restart server with PM2
             if command -v pm2 &> /dev/null; then
               pm2 restart server || pm2 start index.js --name server
               pm2 save
             fi
-
-            echo "✅ Safe deployment completed! Only server directory updated, .env preserved."
