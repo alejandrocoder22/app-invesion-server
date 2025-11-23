@@ -566,7 +566,14 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $
         estimation.fair_multiple,
         estimation.midterm_growth,
         estimation.roe_mid,
-        estimation.terminal_rate
+        estimation.terminal_rate,
+        estimation.interest_income,
+        estimation.accounts_receivable,
+        estimation.inventories,
+        estimation.prepaid_expenses,
+        estimation.accounts_payable,
+        estimation.accrued_expenses,
+        estimation.total_unearned_revenues
       ]
       await pool.query(query, values)
     }

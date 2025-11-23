@@ -544,6 +544,7 @@ const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
       dividendsCapitalAllocation
     } = historicMetricData
 
+    console.log(historicMetricData)
     const sanitize = (value) => {
       const num = Number(value)
       return isNaN(num) || !isFinite(num) ? null : num
@@ -829,7 +830,9 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
       financialDebt,
       periodType,
       costOfDebt,
-      totalUnearnedRevenues
+      totalUnearnedRevenues,
+      Number(stockInfo.prepaid_expenses) || 0,
+      Number(stockInfo.accrued_expenses) || 0
     ]
   })
 
@@ -869,7 +872,9 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
       financial_debt,
       period_type,
       cost_of_debt,
-      total_unearned_revenues
+      total_unearned_revenues,
+      prepaid_expenses,
+      accrued_expenses
     ) VALUES ${placeholders}
   `
 
@@ -921,6 +926,29 @@ const createHistoricMetrics = async (stockHistoricData, companyId, client) => {
       sharesCapitalAllocation,
       dividendsCapitalAllocation
     } = historicMetricData
+
+    console.log({
+      ROE,
+      ROCE,
+      ROIC,
+      structuralGrowthRoe,
+      structuralGrowthRoic,
+      structuralGrowtoRoce,
+      operatingMargin,
+      debtToEquity,
+      netMargin,
+      grossMargin,
+      fcfMargin,
+      ebitdaMargin,
+      netCashPerShare,
+      cashConversion,
+      netDebtToEbitda,
+      freeCashFlowConversion,
+      reinvestmentRate,
+      debtCapitalAllocation,
+      sharesCapitalAllocation,
+      dividendsCapitalAllocation
+    })
 
     const sanitize = (value) => {
       const num = Number(value)

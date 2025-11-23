@@ -230,6 +230,10 @@ export const calculateNetCashPerShare = (stockHistoricInfo) => {
   ).toFixed(2)
 }
 
+export const calculateFinancialDebt = (total_debt, long_term_capital_leases, short_term_capital_leases) => {
+  return (Number(total_debt) - Number(long_term_capital_leases) - Number(short_term_capital_leases)).toFixed(2)
+}
+
 export const calculateWorkingCapital = (accounts_receivable, inventories, prepaid_expenses, accounts_payable, accrued_expenses, total_unearned_revenues) => {
   return (Number(accounts_receivable) + Number(inventories) + Number(prepaid_expenses) - Number(accounts_payable) - Number(accrued_expenses) - Number(total_unearned_revenues)).toFixed(2)
 }
@@ -596,8 +600,8 @@ export const preparationForHistoricMetrics = (stockHistoric, arrayOfHistoricData
   const operatingIncomeT = arrayOfHistoricData[index]?.operating_income
   const operatingIncomeMinusT = index === 0 ? 0 : arrayOfHistoricData[index - 1]?.operating_income
 
-  const financialDebtT = arrayOfHistoricData[index]?.financial_debt
-  const financialDebtMinusT = index === 0 ? 0 : arrayOfHistoricData[index - 1]?.financial_debt
+  const financialDebtT = calculateFinancialDebt(arrayOfHistoricData[index]?.total_debt, arrayOfHistoricData[index]?.long_term_capital_leases, arrayOfHistoricData[index]?.short_term_capital_leases)
+  const financialDebtMinusT = index === 0 ? 0 : calculateFinancialDebt(arrayOfHistoricData[index - 1]?.total_debt, arrayOfHistoricData[index - 1]?.long_term_capital_leases, arrayOfHistoricData[index - 1]?.short_term_capital_leases)
 
   const ROE = calculateRoe(equityT, equityMinusT, stockHistoric.net_income, index)
   const ROCE = calculateRoce(operatingIncomeT, operatingIncomeMinusT, equityT, equityMinusT, financialDebtT, financialDebtMinusT, index)
