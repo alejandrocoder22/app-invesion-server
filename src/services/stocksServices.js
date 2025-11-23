@@ -9,7 +9,8 @@ import {
   calculateWorkingCapital,
   getReinvestMentRate,
   preparationForHistoricMetrics,
-  calculateCostOfDebt
+  calculateCostOfDebt,
+  calculateTotalUnearnedRevenues
 } from '../helpers/calculateMetrics.js'
 
 import {
@@ -145,6 +146,7 @@ const getOneStockTenYearsHistoric = (companyId) => query(
         b.cost_of_debt,
         b.prepaid_expenses,
         b.accrued_expenses,
+        b.total_unearned_revenues,
         c.operating_cash_flow,
         c.capital_expenditures,
         c.dividends_paid,
@@ -274,8 +276,9 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
       const fiscalYear = isTTM ? null : stockInfo.year
       const periodType = isTTM ? 'ttm' : 'annual'
 
-      const sql = isTTM ? updateBalanceSheetSqlTTM : updateBalanceSheetSql
+      const totalUnearnedRevenues = calculateTotalUnearnedRevenues(stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current)
 
+      const sql = isTTM ? updateBalanceSheetSqlTTM : updateBalanceSheetSql
       const baseParams = [
         companyId,
         Number(stockInfo.current_assets) || 0,
@@ -298,7 +301,8 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
         financialDebt,
         costOfDebt,
         Number(stockInfo.prepaid_expenses) || 0,
-        Number(stockInfo.accrued_expenses) || 0
+        Number(stockInfo.accrued_expenses) || 0,
+        Number(totalUnearnedRevenues) || 0
 
       ]
 
@@ -802,6 +806,7 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
     const isTTM = index === stockHistoricData.length - 1 && stockHistoricData.length > 1
     const periodType = isTTM ? 'ttm' : 'annual'
     const fiscalYear = isTTM ? null : stockInfo.year
+    const totalUnearnedRevenues = calculateTotalUnearnedRevenues(stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current)
 
     return [
       companyId,
@@ -825,7 +830,8 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
       Number(stockInfo.other_intangibles) || 0,
       financialDebt,
       periodType,
-      costOfDebt
+      costOfDebt,
+      totalUnearnedRevenues
     ]
   })
 
@@ -864,7 +870,8 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
       other_intangibles,
       financial_debt,
       period_type,
-      cost_of_debt
+      cost_of_debt,
+      total_unearned_revenues
     ) VALUES ${placeholders}
   `
 

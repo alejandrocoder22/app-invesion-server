@@ -1,3 +1,6 @@
+ALTER TABLE balance_sheets ADD COLUMN total_unearned_revenues NUMERIC(20,4);
+
+
 CREATE DATABASE invesion_app;
 
 CREATE TABLE company_info (
@@ -81,6 +84,7 @@ CREATE TABLE balance_sheets (
     short_term_capital_leases NUMERIC(20,4),
     unearned_revenues NUMERIC(20,4),
     unearned_revenues_non_current NUMERIC(20,4),
+    total_unearned_revenues NUMERIC(20,4),
     accounts_receivable NUMERIC(20,4),
     accounts_payable NUMERIC(20,4),
     other_intangibles NUMERIC(20,4),

@@ -598,7 +598,8 @@ SET
     financial_debt = $21,
     cost_of_debt = $22,
     prepaid_expenses = $23,
-    accrued_expenses = $24
+    accrued_expenses = $24,
+    total_unearned_revenues = $25
 WHERE company_id = $1 AND fiscal_year = $2
 
 `
@@ -627,7 +628,8 @@ SET
     financial_debt = $19,
     cost_of_debt = $20,
     prepaid_expenses = $21,
-    accrued_expenses = $22
+    accrued_expenses = $22,
+    total_unearned_revenues = $23
 WHERE company_id = $1 AND period_type = 'ttm'
 
 `

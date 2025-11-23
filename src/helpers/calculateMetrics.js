@@ -250,7 +250,7 @@ export const calculateRealFcf = (stockData) => {
   const getMaintenanceCapex = Number((stockData.depreciation_and_amortization) / stockData.capital_expenditures) * 100
   const normalisedMaintenanceCapex = getMaintenanceCapex < -100 ? -100 : getMaintenanceCapex.toFixed(2)
   const capexExGrowth = Math.abs(stockData.capital_expenditures * (Number(normalisedMaintenanceCapex) / 100)) * -1
-  const realFcf = (Number(stockData.operating_income) + Number(stockData.interest_expense) + Number(stockData.income_tax_expense) + Number(stockData.depreciation_and_amortization) + Number(workingCapital) + Number(capexExGrowth)).toFixed(2)
+  const realFcf = (Number(stockData.operating_income) + Number(stockData.interest_expense) + Number(stockData.interest_income) + Number(stockData.income_tax_expense) + Number(stockData.depreciation_and_amortization) + Number(workingCapital) + Number(capexExGrowth)).toFixed(2)
   return realFcf
 }
 
@@ -258,6 +258,13 @@ const calculateRealNormalisedUnleveredFcf = (stockData) => {
   const taxRate = 1 + Number(stockData.averageTaxRate) / 100
 
   return (Number(stockData.normalisedOperatingIncome) * taxRate + Number(stockData.normalisedDa) - Number(stockData.normalisedWorkingCapital) + Number(stockData.normalisedcapex)).toFixed(2)
+}
+
+export const calculateTotalUnearnedRevenues = (unearnedRevenuesCurrent, unearnedRevenuesNonCurrent) => {
+  const unearnedCurrent = unearnedRevenuesCurrent || 0
+  const unearnedNonCurrent = unearnedRevenuesNonCurrent || 0
+
+  return (Number(unearnedCurrent) + Number(unearnedNonCurrent)).toFixed(2)
 }
 
 const roundNumber = (number) => Math.round(number * 100) / 100
