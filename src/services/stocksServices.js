@@ -9,7 +9,8 @@ import {
   getReinvestMentRate,
   preparationForHistoricMetrics,
   calculateCostOfDebt,
-  calculateTotalUnearnedRevenues
+  calculateTotalUnearnedRevenues,
+  calculateFinancialDebt
 } from '../helpers/calculateMetrics.js'
 
 import {
@@ -269,7 +270,7 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
       const shortTermCapitalLeases = Number(stockInfo.short_term_capital_leases) || 0
       const totalDebt = Number(stockInfo.total_debt) || 0
 
-      const financialDebt = Math.max(0, totalDebt - longTermCapitalLeases - shortTermCapitalLeases)
+      const financialDebt = calculateFinancialDebt(totalDebt, longTermCapitalLeases, shortTermCapitalLeases)
       const costOfDebt = calculateCostOfDebt(stockInfo.interest_expense, financialDebt) || 0
       const isTTM = index === 10
       const fiscalYear = isTTM ? null : stockInfo.year

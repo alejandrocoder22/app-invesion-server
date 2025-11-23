@@ -34,7 +34,7 @@ export const calculateCostOfDebt = (interest_expense, financial_debt) => {
 
   if (debt === 0) return '0.00'
 
-  return (expense / debt * 100).toFixed(2)
+  return ((expense / debt * 100)).toFixed(2)
 }
 
 const calculateCurrentRatio = (stockHistoricInfo) => {
