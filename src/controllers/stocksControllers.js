@@ -483,7 +483,9 @@ const upsertEstimations = async (req, res, next) => {
         message: 'estimations (array) es requerido en el body'
       })
     }
-    if (!estimations.fair_multiple) {
+
+    console.log(estimations)
+    if (!estimations[0].fair_multiple) {
       return res.status(400).json({
         status: 'ERROR',
         message: 'Debes de incluir el multiplo'
@@ -499,9 +501,10 @@ const upsertEstimations = async (req, res, next) => {
     simple_free_cash_flow, income_tax_expense, cost_of_debt,
     net_debt_issued, equity, net_repurchased_shares, nopat,
     discount, ebit_multiple, fair_multiple, midterm_growth,
-    roe_mid, terminal_rate
+    roe_mid, terminal_rate, interest_income, accounts_receivable, inventories, prepaid_expenses,accounts_payable,accrued_expenses,total_unearned_revenues 
   )
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32)
+
   ON CONFLICT (company_id, year)
   DO UPDATE SET
     revenue = EXCLUDED.revenue,
@@ -527,6 +530,13 @@ const upsertEstimations = async (req, res, next) => {
     midterm_growth = EXCLUDED.midterm_growth,
     roe_mid = EXCLUDED.roe_mid,
     terminal_rate = EXCLUDED.terminal_rate,
+    interest_income = EXCLUDED.interest_income,
+    accounts_receivable = EXCLUDED.accounts_receivable,
+    inventories = EXCLUDED.inventories,
+    prepaid_expenses = EXCLUDED.prepaid_expenses,
+    accounts_payable = EXCLUDED.accounts_payable,
+    accrued_expenses = EXCLUDED.accrued_expenses,
+    total_unearned_revenues = EXCLUDED.total_unearned_revenues,
     updated_at = NOW()
 `
 

@@ -1,7 +1,6 @@
 import pool from '../database/database.js'
 import query from '../helpers/query.js'
 import {
-  calculateRoe,
   calculateScore,
   getUpdatedMetricData,
   calculateChangeInWorkingCapital,
@@ -336,7 +335,6 @@ const updateCashFlowStatement = async (stockDataToUpdate, companyId, client) => 
   if (!stockDataToUpdate || stockDataToUpdate.length === 0) {
     throw new DatabaseError('Stock data is required')
   }
-
   try {
     const preparedData = prepareCashFlowData(stockDataToUpdate)
 
@@ -1044,12 +1042,15 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
     const reinvestmentRate = getReinvestMentRate(index, stockHistoricData, addYearFcf)
     const safeReinvestmentRate = isFinite(reinvestmentRate) ? reinvestmentRate : 0
 
+    const totalUnearnedRevenues = calculateTotalUnearnedRevenues(stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current)
+
     const workingCapital = calculateWorkingCapital(
       stockInfo.accounts_receivable,
       stockInfo.inventories,
       stockInfo.prepaid_expenses,
       stockInfo.accounts_payable,
-      stockInfo.accrued_expenses
+      stockInfo.accrued_expenses,
+      totalUnearnedRevenues
     )
     const unleaveredFcf = Number(stockInfo.operating_cash_flow) + Number(stockInfo.capital_expenditures)
 
@@ -1136,6 +1137,7 @@ const createCashFlowStatementReit = async (stockHistoricData, companyId, client,
     return stockHistoricData.map((stockInfo, i) => {
       const FFO = (Number(stockInfo.net_income) + Number(stockInfo.depreciation_and_amortization) - Number(stockInfo.sale_of_assets)).toFixed(2)
       const addYearFcf = calculateRealFcf(stockHistoricData, calculateChangeInWorkingCapital(i, stockHistoricData, lastYearWorkingCapital))
+      const totalUnearnedRevenues = calculateTotalUnearnedRevenues(stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current)
       client.query(createCashFlowStatemenReitSql,
 
         stockHistoricData.length > 1
@@ -1152,7 +1154,7 @@ const createCashFlowStatementReit = async (stockHistoricData, companyId, client,
               stockInfo.repurchased_shares ? stockInfo.repurchased_shares : 0, // repurchased_shares
               null, // change_in_working_capital
               isFinite(getReinvestMentRate(i, stockHistoricData, addYearFcf)) ? getReinvestMentRate(i, stockHistoricData, addYearFcf) : 0, // reinvestment_rate
-              calculateWorkingCapital(stockInfo.accounts_receivable, stockInfo.inventories, stockInfo.prepaid_expenses, stockInfo.accounts_payable, stockInfo.accrued_expenses), // working_capital
+              calculateWorkingCapital(stockInfo.accounts_receivable, stockInfo.inventories, stockInfo.prepaid_expenses, stockInfo.accounts_payable, stockInfo.accrued_expenses, totalUnearnedRevenues), // working_capital
               stockInfo.depreciation_and_amortization, // depreciation_and_amortization
               FFO,
               i === 10 ? 'ttm' : 'annual',
@@ -1294,7 +1296,8 @@ const updateTtmCashFlowsStatement = async (stockData, companyId, client, lastYea
     stockInfo.inventories,
     stockInfo.prepaid_expenses,
     stockInfo.accounts_payable,
-    stockInfo.accrued_expenses
+    stockInfo.accrued_expenses,
+    stockInfo.total_unearned_revenues
   )
 
   const unleaveredFcf = Number(

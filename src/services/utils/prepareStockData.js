@@ -5,12 +5,12 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
     const isTtm = i === 10
     const isTtmLastYear = i === 10 && stockInfo.revenue === stockDataToUpdate[9].revenue
     const prevIndex = isTtmLastYear ? i - 1 : i
-    const changeInWorkingCapital = calculateChangeInWorkingCapital(prevIndex, stockDataToUpdate)
-
     const workingCapital =
        isTtm
-         ? calculateWorkingCapital(stockDataToUpdate[prevIndex].accounts_receivable, stockDataToUpdate[prevIndex].inventories, stockDataToUpdate[prevIndex].prepaid_expenses, stockDataToUpdate[prevIndex].accounts_payable, stockDataToUpdate[prevIndex].accrued_expenses)
-         : calculateWorkingCapital(stockInfo.accounts_receivable, stockInfo.inventories, stockInfo.prepaid_expenses, stockInfo.accounts_payable, stockInfo.accrued_expenses)
+         ? calculateWorkingCapital(stockDataToUpdate[prevIndex].accounts_receivable, stockDataToUpdate[prevIndex].inventories, stockDataToUpdate[prevIndex].prepaid_expenses, stockDataToUpdate[prevIndex].accounts_payable, stockDataToUpdate[prevIndex].accrued_expenses, stockDataToUpdate[prevIndex].total_unearned_revenues)
+         : calculateWorkingCapital(stockInfo.accounts_receivable, stockInfo.inventories, stockInfo.prepaid_expenses, stockInfo.accounts_payable, stockInfo.accrued_expenses, stockInfo.total_unearned_revenues)
+
+    const changeInWorkingCapital = calculateChangeInWorkingCapital(prevIndex, stockDataToUpdate)
 
     const fcf = calculateRealFcf(stockInfo, changeInWorkingCapital)
     const maintenanceCapexPercentage = Number((stockInfo?.depreciation_and_amortization) / Number((stockInfo?.capital_expenditures)))
@@ -22,6 +22,8 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
     const issuedShares = Number(stockInfo.issued_shares || 0)
     const netRepurchasedShares = repurchasedShares + issuedShares
     const netDebtIssued = (debtIssued + debtRepaid).toFixed(2)
+
+    console.log(workingCapital)
     return {
       ...stockInfo,
       period_type: isTtm ? 'ttm' : 'annual',
