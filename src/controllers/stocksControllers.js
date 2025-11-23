@@ -484,7 +484,6 @@ const upsertEstimations = async (req, res, next) => {
       })
     }
 
-    console.log(estimations)
     if (!estimations[0].fair_multiple) {
       return res.status(400).json({
         status: 'ERROR',
