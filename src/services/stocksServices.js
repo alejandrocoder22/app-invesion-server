@@ -545,7 +545,6 @@ const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
       dividendsCapitalAllocation
     } = historicMetricData
 
-    console.log(historicMetricData)
     const sanitize = (value) => {
       const num = Number(value)
       return isNaN(num) || !isFinite(num) ? null : num
@@ -927,29 +926,6 @@ const createHistoricMetrics = async (stockHistoricData, companyId, client) => {
       sharesCapitalAllocation,
       dividendsCapitalAllocation
     } = historicMetricData
-
-    console.log({
-      ROE,
-      ROCE,
-      ROIC,
-      structuralGrowthRoe,
-      structuralGrowthRoic,
-      structuralGrowtoRoce,
-      operatingMargin,
-      debtToEquity,
-      netMargin,
-      grossMargin,
-      fcfMargin,
-      ebitdaMargin,
-      netCashPerShare,
-      cashConversion,
-      netDebtToEbitda,
-      freeCashFlowConversion,
-      reinvestmentRate,
-      debtCapitalAllocation,
-      sharesCapitalAllocation,
-      dividendsCapitalAllocation
-    })
 
     const sanitize = (value) => {
       const num = Number(value)

@@ -23,7 +23,6 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
     const netRepurchasedShares = repurchasedShares + issuedShares
     const netDebtIssued = (debtIssued + debtRepaid).toFixed(2)
 
-    console.log(workingCapital)
     return {
       ...stockInfo,
       period_type: isTtm ? 'ttm' : 'annual',
