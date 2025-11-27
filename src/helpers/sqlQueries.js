@@ -544,7 +544,8 @@ SET
     period_type = $13,
     nopat = $14,
     updated_at = NOW(),
-    interest_income = $15
+    interest_income = $15,
+    tax_rate = $16
 WHERE company_id = $1 AND fiscal_year = $2
 
 
@@ -567,8 +568,9 @@ SET
     period_type = $12,
     nopat = $13,
     updated_at = NOW(),
-    interest_income = $14
-WHERE company_id = $1 AND period_type= $12
+    interest_income = $14,
+    tax_rate = $15
+ WHERE company_id = $1 AND period_type= $12
 
 
 `

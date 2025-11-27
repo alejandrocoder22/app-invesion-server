@@ -1,4 +1,4 @@
-ALTER TABLE balance_sheets ADD COLUMN total_unearned_revenues NUMERIC(20,4);
+ALTER TABLE income_statements ADD COLUMN tax_rate NUMERIC(12,2);
 
 
 CREATE DATABASE invesion_app;
@@ -53,6 +53,7 @@ CREATE TABLE income_statements (
     interest_income NUMERIC(20,4),
     income_before_taxes NUMERIC(20,4),
     income_tax_expense NUMERIC(20,4),
+    tax_rate NUMERIC(12,2),
     goodwill NUMERIC(20,4),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),

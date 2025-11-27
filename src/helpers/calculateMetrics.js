@@ -238,6 +238,14 @@ export const calculateWorkingCapital = (accounts_receivable, inventories, prepai
   return (Number(accounts_receivable) + Number(inventories) + Number(prepaid_expenses) - Number(accounts_payable) - Number(accrued_expenses) - Number(total_unearned_revenues)).toFixed(2)
 }
 
+export const calculateTaxRate = (income_tax_expense, income_before_taxes) => {
+  const incomeTaxExpense = income_tax_expense || 0
+
+  const incomeBeforeTax = income_before_taxes || 0
+
+  return ((Number(incomeTaxExpense) / Number(incomeBeforeTax) * 100)).toFixed(2)
+}
+
 export const calculateChangeInWorkingCapital = (i, stockHistoricData, lastYearWorkingCapital = null) => {
   if (lastYearWorkingCapital) {
     return calculateWorkingCapital(stockHistoricData[i]?.accounts_receivable, stockHistoricData[i]?.inventories, stockHistoricData[i]?.prepaid_expenses, stockHistoricData[i]?.accounts_payable, stockHistoricData[i]?.accrued_expenses, stockHistoricData[i]?.total_unearned_revenues) - Number(lastYearWorkingCapital)

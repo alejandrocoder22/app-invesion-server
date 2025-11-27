@@ -10,7 +10,8 @@ import {
   preparationForHistoricMetrics,
   calculateCostOfDebt,
   calculateTotalUnearnedRevenues,
-  calculateFinancialDebt
+  calculateFinancialDebt,
+  calculateTaxRate
 } from '../helpers/calculateMetrics.js'
 
 import {
@@ -124,6 +125,7 @@ const getOneStockTenYearsHistoric = (companyId) => query(
         i.income_before_taxes,
         i.income_tax_expense,
         i.nopat,
+        i.tax_rate,
         b.current_assets,
         b.current_liabilities,
         b.total_cash,
@@ -213,12 +215,13 @@ const updateIncomeStatement = async (stockDataToUpdate, companyId, client) => {
       const incomeTax = Number(stockInfo?.income_tax_expense) || 0
       const incomeBeforeTax = Number(stockInfo?.income_before_taxes) || 0
 
-      const taxRate = incomeBeforeTax !== 0 ? incomeTax / incomeBeforeTax : 0
-      const NOPAT = operatingIncome * (1 + taxRate)
+      const taxRate = calculateTaxRate(stockInfo.income_tax_expense, stockInfo.income_before_taxes)
+      const NOPAT = operatingIncome * (1 + (Number(taxRate) / 100))
       const isTTM = index === 10
       const fiscalYear = isTTM ? null : stockInfo.year
       const periodType = isTTM ? 'ttm' : 'annual'
 
+      console.log(taxRate)
       const sql = isTTM ? updateIncomeStatementTtmSql : updateIncomeStatementSql
 
       const params = [
@@ -236,7 +239,8 @@ const updateIncomeStatement = async (stockDataToUpdate, companyId, client) => {
         incomeTax,
         periodType,
         NOPAT,
-        Number(stockInfo.interest_income) || 0
+        Number(stockInfo.interest_income) || 0,
+        Number(taxRate) || 0
       ]
 
       const finalParams = isTTM && !updateIncomeStatementTtmSql.includes('fiscal_year')
@@ -717,11 +721,9 @@ const createIncomeStatemente = async (stockHistoricData, companyId, client) => {
 
   const values = stockHistoricData.map((stockInfo, index) => {
     const operatingIncome = Number(stockInfo?.operating_income) || 0
-    const incomeTax = Number(stockInfo?.income_tax_expense) || 0
-    const incomeBeforeTax = Number(stockInfo?.income_before_taxes) || 0
 
-    const taxRate = incomeBeforeTax !== 0 ? incomeTax / incomeBeforeTax : 0
-    const NOPAT = operatingIncome * (1 + taxRate)
+    const taxRate = calculateTaxRate(stockInfo.income_tax_expense, stockInfo.income_before_taxes)
+    const NOPAT = operatingIncome * (1 + (Number(taxRate) / 100))
 
     const isTTM = index === stockHistoricData.length - 1 && stockHistoricData.length > 1
     const periodType = isTTM ? 'ttm' : 'annual'
@@ -742,11 +744,12 @@ const createIncomeStatemente = async (stockHistoricData, companyId, client) => {
       Number(stockInfo.income_tax_expense) || 0,
       periodType,
       NOPAT,
-      Number(stockInfo.interest_income) || 0
+      Number(stockInfo.interest_income) || 0,
+      Number(taxRate) || 0
     ]
   })
 
-  const columnsPerRow = 15
+  const columnsPerRow = 16
   const placeholders = values.map((_, rowIndex) => {
     const rowPlaceholders = Array.from(
       { length: columnsPerRow },
@@ -773,7 +776,8 @@ const createIncomeStatemente = async (stockHistoricData, companyId, client) => {
       income_tax_expense,
       period_type,
       nopat,
-      interest_income
+      interest_income,
+      tax_rate
     ) VALUES ${placeholders}
   `
 
@@ -1352,8 +1356,8 @@ const updateTtmIncomeStatement = async (stockData, companyId, client) => {
     const incomeTax = Number(stockInfo?.income_tax_expense) || 0
     const incomeBeforeTax = Number(stockInfo?.income_before_taxes) || 0
 
-    const taxRate = incomeBeforeTax !== 0 ? incomeTax / incomeBeforeTax : 0
-    const NOPAT = operatingIncome * (1 - taxRate)
+    const taxRate = calculateTaxRate(stockInfo.income_tax_expense, stockInfo.income_before_taxes)
+    const NOPAT = operatingIncome * (1 + (Number(taxRate) / 100))
 
     try {
       const result = await client.query(updateIncomeStatementTtmSql, [
