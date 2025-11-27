@@ -1,6 +1,3 @@
-ALTER TABLE income_statements ADD COLUMN tax_rate NUMERIC(12,2);
-
-
 CREATE DATABASE invesion_app;
 
 CREATE TABLE company_info (
@@ -219,12 +216,11 @@ CREATE TABLE stock_estimations (
   net_income NUMERIC(12, 2),
   sale_of_assets NUMERIC(12, 2),
   simple_free_cash_flow NUMERIC(12, 2),
-  income_tax_expense NUMERIC(12, 2),
+  tax_rate NUMERIC(12,2)
   cost_of_debt NUMERIC(12, 2), 
   net_debt_issued NUMERIC(12, 2),
   equity NUMERIC(12, 2),
   net_repurchased_shares NUMERIC(12, 2),
-  nopat NUMERIC(12, 2),
   discount NUMERIC(12, 2),
   ebit_multiple NUMERIC(12, 2),
   fair_multiple NUMERIC(12, 2),

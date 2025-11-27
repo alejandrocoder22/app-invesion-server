@@ -234,7 +234,7 @@ export const calculateFinancialDebt = (total_debt, long_term_capital_leases, sho
   return (Number(total_debt) - Number(long_term_capital_leases) - Number(short_term_capital_leases)).toFixed(2)
 }
 
-export const calculateWorkingCapital = (accounts_receivable, inventories, prepaid_expenses, accounts_payable, accrued_expenses, total_unearned_revenues) => {
+export const calculateWorkingCapital = (accounts_receivable, inventories, prepaid_expenses = 0, accounts_payable, accrued_expenses, total_unearned_revenues) => {
   return (Number(accounts_receivable) + Number(inventories) + Number(prepaid_expenses) - Number(accounts_payable) - Number(accrued_expenses) - Number(total_unearned_revenues)).toFixed(2)
 }
 
