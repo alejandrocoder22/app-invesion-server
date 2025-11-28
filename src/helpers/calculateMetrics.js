@@ -3,16 +3,16 @@ import { defaultStrategy } from './scoreStrategies.js'
 
 export const getLastItemOfArray = (array) => array[array.length - 1]
 
+const median = arr => {
+  const mid = Math.floor(arr.length / 2)
+  const nums = [...arr].sort((a, b) => a - b)
+  return (arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2).toFixed(2)
+}
+
+const average = (arr) => Math.round((arr.reduce((previous, current) => previous + current) / arr.length) * 100) / 100
+
 export const calculateFcfConversion = (fcf, netIncome) => (Number(fcf) / Number(netIncome) * 100).toFixed(2)
 
-export const calculateDebtToEbitda = (stockHistoricInfo) => {
-  const { total_debt, total_cash, operating_income, depreciation_and_amortization } = stockHistoricInfo
-
-  const netDebt = Number(total_debt) - Number(total_cash)
-  const ebitda = Number(operating_income) + Number(depreciation_and_amortization)
-
-  return netDebt > 0 ? (netDebt / ebitda).toFixed(2) : 0
-}
 export const calculateNetDebtToEbitda = (stockHistoricInfo) => {
   const { total_debt, total_cash, operating_income, depreciation_and_amortization } = stockHistoricInfo
 
@@ -20,12 +20,6 @@ export const calculateNetDebtToEbitda = (stockHistoricInfo) => {
   const ebitda = Number(operating_income) + Number(depreciation_and_amortization)
 
   return (netDebt / ebitda).toFixed(2)
-}
-
-const median = arr => {
-  const mid = Math.floor(arr.length / 2)
-  const nums = [...arr].sort((a, b) => a - b)
-  return (arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2).toFixed(2)
 }
 
 export const calculateCostOfDebt = (interest_expense, financial_debt) => {
@@ -52,13 +46,11 @@ export const calculateRoe = (equityT, equityMinusT, netIncome, index) => {
   }
 }
 
-// Calcular tasa de reinversión
 export const calculateReinvestmentRate = (net_income, dividends_paid, repurchased_shares) => {
   return (((Number(net_income) + Number(dividends_paid) + Number(repurchased_shares)) /
       Number(net_income)) * 100).toFixed(2)
 }
 
-// Calcular deuda neta pagada
 export const calculateDebtCapitalAllocation = (debt_repaid, debt_issued, free_cash_flow) => {
   const netDebtRepaid = ((Number(debt_repaid) + Number(debt_issued)) / Number(free_cash_flow)) * 100
 
@@ -77,19 +69,7 @@ export const calculateDividendsCapitalAllocation = (free_cash_flow, dividends_pa
   return Math.abs((dividendsPaid / Number(free_cash_flow) * 100).toFixed(2))
 }
 
-export const calculateCapexRate = (stockData) => {
-  const capex = getGrowthCapex(stockData)
-  const fcf = Number(stockData[FCF_TO_USE])
-  return (capex / fcf * 100).toFixed(2)
-}
-
-export const calculateAcquisitionsRate = (stockData) => {
-  const acquisitions = Math.abs(stockData.cash_acquisitions || 0)
-  const fcf = Number(stockData[FCF_TO_USE])
-  return (acquisitions / fcf * 100).toFixed(2)
-}
-
-export const calculateCurrentRoicWithSingleYear = (operatingIncome, incomeTaxExpense, incomeBeforeTax, total_debt, total_cash, equity) => {
+export const calculateRoic = (operatingIncome, incomeTaxExpense, incomeBeforeTax, total_debt, total_cash, equity) => {
   const NOPAT = Number(operatingIncome) * (1 + Number(incomeTaxExpense) / Number(incomeBeforeTax))
   const investedCapital = (Number(total_debt) - Number(total_cash) + Number(equity))
 
@@ -191,8 +171,6 @@ export const calculateCashConversion = (stockHistoricInfo) => {
   ).toFixed(2)
 }
 
-const average = (arr) => Math.round((arr.reduce((previous, current) => previous + current) / arr.length) * 100) / 100
-
 export const calculateFcfMargin = (fcf, revenue) => ((Number(fcf) / Number(revenue)) * 100).toFixed(2)
 
 const calculateAverageMetricByYears = (years, stockInfo, changeInNetWorkingCapital = 0) => {
@@ -205,7 +183,7 @@ const calculateAverageMetricByYears = (years, stockInfo, changeInNetWorkingCapit
     arrayOfFcf.push(Number(calculateFcfMargin(calculateRealFcf(stockInfo[i], changeInNetWorkingCapital[i]), stockInfo[i].revenue)))
     arrayOfOm.push(Number(calculateOperatingMargin(stockInfo[i])))
     arrayOfGm.push(Number(calculateGrossMargin(stockInfo[i])))
-    arrayOfRoic.push(Number(calculateCurrentRoicWithSingleYear(stockInfo[i].operating_income, stockInfo[i].income_tax_expense, stockInfo[i].income_before_taxes, stockInfo[i].total_debt, stockInfo[i].total_cash, stockInfo[i].equity)))
+    arrayOfRoic.push(Number(calculateRoic(stockInfo[i].operating_income, stockInfo[i].income_tax_expense, stockInfo[i].income_before_taxes, stockInfo[i].total_debt, stockInfo[i].total_cash, stockInfo[i].equity)))
   }
 
   return {
@@ -259,29 +237,11 @@ export const calculateRealFcf = (stockData) => {
   return realFcf
 }
 
-const calculateRealNormalisedUnleveredFcf = (stockData) => {
-  const taxRate = 1 + Number(stockData.averageTaxRate) / 100
-
-  return (Number(stockData.normalisedOperatingIncome) * taxRate + Number(stockData.normalisedDa) - Number(stockData.normalisedWorkingCapital) + Number(stockData.normalisedcapex)).toFixed(2)
-}
-
 export const calculateTotalUnearnedRevenues = (unearnedRevenuesCurrent, unearnedRevenuesNonCurrent) => {
   const unearnedCurrent = unearnedRevenuesCurrent || 0
   const unearnedNonCurrent = unearnedRevenuesNonCurrent || 0
 
   return (Number(unearnedCurrent) + Number(unearnedNonCurrent)).toFixed(2)
-}
-
-const roundNumber = (number) => Math.round(number * 100) / 100
-
-const getAverageFiveYearsOperatingIncome = (historicData) => {
-  const numbers = []
-  if (historicData.length > 0) {
-    for (let i = 0; i < historicData.length; i++) {
-      numbers.push(Number(historicData[i].operatingincome) / historicData[i].revenue * 100)
-    }
-  }
-  return average(numbers)
 }
 
 export const calculateEbitdaMargin = (revenue, operatingIncome, depreciation_and_amortization) => (Number(revenue) / (Number(operatingIncome) + Number(depreciation_and_amortization))).toFixed(2)
@@ -295,85 +255,6 @@ const getAverageFiveYearsReinvestmentRate = (historicData) => {
   }
 
   return average(numbers)
-}
-
-const getAverageFiveYearTaxRate = (historicData) => {
-  const ArrayOFHistoricData = []
-  if (historicData.length > 0) {
-    for (let i = 0; i < historicData.length; i++) {
-      ArrayOFHistoricData.push((Number(historicData[i].incometaxexpense) / Number(historicData[i].incomebeforetax) * 100))
-    }
-  }
-  return average(ArrayOFHistoricData)
-}
-
-const getAverageFiveYearDA = (historicData) => {
-  const numbers = []
-  if (historicData.length > 0) {
-    for (let i = 0; i < historicData.length; i++) {
-      numbers.push((Number(historicData[i].da)) / Number(historicData[i].revenue) * 100)
-    }
-  }
-  return average(numbers)
-}
-const getAverageFiveYearWorkingCapital = (historicData) => {
-  const numbers = []
-  if (historicData.length > 0) {
-    for (let i = 0; i < historicData.length; i++) {
-      numbers.push(Number((historicData[i].changeinworkingcapital) / Number(historicData[i].revenue) * 100))
-    }
-  }
-  return average(numbers)
-}
-
-const getAverageFiveYearCapex = (historicData) => {
-  const numbers = []
-  if (historicData.length > 0) {
-    for (let i = 0; i < historicData.length; i++) {
-      numbers.push(Number((historicData[i].capitalexpenditures) / Number(historicData[i].revenue) * 100))
-    }
-  }
-  return average(numbers)
-}
-
-const getAverageFiveYearMaintenanceCapex = (historicData) => {
-  const numbers = []
-  if (historicData.length > 0) {
-    for (let i = 0; i < historicData.length; i++) {
-      const getMaintenanceCapex = Number((historicData[historicData.length - i - 1]?.da) / Number(historicData[historicData.length - i - 1]?.capitalexpenditures) * 100)
-      numbers.push(getMaintenanceCapex < -100 ? -100 : getMaintenanceCapex)
-    }
-  }
-
-  return average(numbers)
-}
-
-const calculateNormalisedFcfData = (historicData) => {
-  const fiveLastYears = historicData.slice((historicData.length - 5), historicData.length)
-
-  const averageOperatingMargin = roundNumber(getAverageFiveYearsOperatingIncome(fiveLastYears))
-  const averageTaxRate = roundNumber(getAverageFiveYearTaxRate(fiveLastYears))
-  const averageDA = roundNumber(getAverageFiveYearDA(fiveLastYears))
-  const averageWorkingCapital = roundNumber(getAverageFiveYearWorkingCapital(fiveLastYears))
-  const averageMaintenanceCapex = roundNumber(getAverageFiveYearMaintenanceCapex(fiveLastYears))
-  const averageCapex = roundNumber(getAverageFiveYearCapex(fiveLastYears))
-
-  const normalisedOperatingIncome = Math.round((historicData[historicData.length - 1]?.revenue * averageOperatingMargin) / 100)
-  const normalisedDa = Math.round((historicData[historicData.length - 1]?.revenue * averageDA) / 100)
-  const normalisedWorkingCapital = Math.round((historicData[historicData.length - 1]?.revenue * averageWorkingCapital) / 100)
-  const normalisedcapex = Math.round((historicData[historicData.length - 1]?.revenue * (averageCapex * (averageMaintenanceCapex / 100)) * -1) / 100)
-
-  return {
-    normalisedOperatingIncome,
-    averageTaxRate,
-    normalisedDa,
-    normalisedWorkingCapital,
-    normalisedcapex,
-    averageOperatingMargin,
-    averageDA,
-    averageWorkingCapital,
-    averageCapex
-  }
 }
 
 function evaluarTendencia (margenesOperativos) {
@@ -441,7 +322,7 @@ const getArrayOfGrossMargin = (historicData) => {
   return historicData.map(singleHistoricData => ((Number(singleHistoricData.revenue) - Number(singleHistoricData.cost_of_goods_sold)) / Number(singleHistoricData.revenue)) * 100)
 }
 const getArrayOfRoic = (historicData) => {
-  return historicData.map(singleHistoricData => (Number(calculateCurrentRoicWithSingleYear(singleHistoricData.operating_income, singleHistoricData.income_tax_expense, singleHistoricData.income_before_taxes, singleHistoricData.total_debt, singleHistoricData.total_cash, singleHistoricData.equity))))
+  return historicData.map(singleHistoricData => (Number(calculateRoic(singleHistoricData.operating_income, singleHistoricData.income_tax_expense, singleHistoricData.income_before_taxes, singleHistoricData.total_debt, singleHistoricData.total_cash, singleHistoricData.equity))))
 }
 
 export const getReinvestMentRate = (i, historicData = undefined, arrayOfHistoricFcf = undefined) => {
@@ -534,13 +415,13 @@ export const getUpdatedMetricData = (arrayOfHistoricData, changeInNetWorkingCapi
     freeCashFlowMargin = calculateFcfMargin(calculateRealFcf(ttmData, changeInNetWorkingCapital[changeInNetWorkingCapital.length - 1]), ttmData?.revenue)
   }
 
-  const ttmRoic = calculateCurrentRoicWithSingleYear(ttmData.operating_income, ttmData.income_tax_expense, ttmData.income_before_taxes, ttmData.total_debt, ttmData.total_cash, ttmData.equity)
+  const ttmRoic = calculateRoic(ttmData.operating_income, ttmData.income_tax_expense, ttmData.income_before_taxes, ttmData.total_debt, ttmData.total_cash, ttmData.equity)
   const currentRatio = calculateCurrentRatio(ttmData)
   const grossMargin = calculateGrossMargin(ttmData)
   const operatingMargin = calculateOperatingMargin(ttmData)
   const cashConversion = calculateCashConversion(ttmData)
   const netCashPerShare = calculateNetCashPerShare(ttmData)
-  const debtToEbitda = calculateDebtToEbitda(ttmData, calculateRealNormalisedUnleveredFcf(calculateNormalisedFcfData(arrayOfHistoricData)))
+  const debtToEbitda = calculateNetDebtToEbitda(ttmData)
   const debtToEquity = calculateDebtToEquity(ttmData)
   const returnOnEquity = getReturnOnEquity(ttmData)
   const netMargin = getNetMargin(ttmData)
@@ -552,8 +433,6 @@ export const getUpdatedMetricData = (arrayOfHistoricData, changeInNetWorkingCapi
   const arrayOfOperatingMargin = getArrayOfOperatingMargin(arrayWithoutTtmData)
   const arrayOfGrossMargin = getArrayOfGrossMargin(arrayWithoutTtmData)
   const arrayOfRoic = getArrayOfRoic(arrayWithoutTtmData)
-
-  console.log(arrayOfRoic)
 
   const scoreMetrics = {
     debt: debtToEbitda,
@@ -623,7 +502,7 @@ export const preparationForHistoricMetrics = (stockHistoric, arrayOfHistoricData
 
   const ROE = calculateRoe(equityT, equityMinusT, stockHistoric.net_income, index)
   const ROCE = calculateRoce(operatingIncomeT, operatingIncomeMinusT, equityT, equityMinusT, financialDebtT, financialDebtMinusT, index)
-  const ROIC = calculateCurrentRoicWithSingleYear(stockHistoric.operating_income, stockHistoric.income_tax_expense, stockHistoric.income_before_taxes, stockHistoric.total_debt, stockHistoric.total_cash, stockHistoric.equity)
+  const ROIC = calculateRoic(stockHistoric.operating_income, stockHistoric.income_tax_expense, stockHistoric.income_before_taxes, stockHistoric.total_debt, stockHistoric.total_cash, stockHistoric.equity)
   const structuralGrowthRoe = calculateStructuralGrowthRoe(ROE, net_income, dividends_paid, repurchased_shares)
   const structuralGrowthRoic = calculateStructuralGrowthRoic(ROIC, operating_income, income_tax_expense, income_before_taxes, dividends_paid, repurchased_shares)
   const structuralGrowtoRoce = calculateStructuralGrowthRoce(ROCE, operating_income, dividends_paid, repurchased_shares)
