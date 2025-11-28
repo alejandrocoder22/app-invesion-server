@@ -16,6 +16,23 @@ export const defaultStrategy = (allScoreMetrics) => {
     tenYearsDividendGrowth
   } = allScoreMetrics
 
+  console.log({
+    debt,
+    currentRatio,
+    anualisedEPS,
+    anualisedFCF,
+    revenueG,
+    shareDilution,
+    lastFiveYearsROIC,
+    netCashPerShare,
+    cashConversion,
+    growOperatingMargin,
+    growGrossMargin,
+    growRoic,
+    medianPayoutRatio,
+    tenYearsDividendGrowth
+  })
+
   const isPayoutRatioPresent = medianPayoutRatio !== null
 
   const scoreRules = [

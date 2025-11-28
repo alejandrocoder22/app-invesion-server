@@ -221,7 +221,6 @@ const updateIncomeStatement = async (stockDataToUpdate, companyId, client) => {
       const fiscalYear = isTTM ? null : stockInfo.year
       const periodType = isTTM ? 'ttm' : 'annual'
 
-      console.log(taxRate)
       const sql = isTTM ? updateIncomeStatementTtmSql : updateIncomeStatementSql
 
       const params = [
