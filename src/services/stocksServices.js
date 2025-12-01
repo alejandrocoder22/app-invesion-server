@@ -680,6 +680,7 @@ const createMetrics = async (arrayOfHistoricData, companyId, client) => {
     const arrayOfHistoricFcf = arrayOfHistoricData.map((stock, i) => calculateRealFcf(arrayOfHistoricData[i], changeInNetWorkingCapital[i]))
 
     const metricsData = getUpdatedMetricData(arrayOfHistoricData, changeInNetWorkingCapital, arrayOfHistoricFcf)
+
     const score = calculateScore(metricsData.scoreMetrics)
     return client.query(createMetricsSql,
       [

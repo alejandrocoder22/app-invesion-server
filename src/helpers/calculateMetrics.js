@@ -330,7 +330,14 @@ export const getArrayOfRoe = (historicData) => {
 }
 
 export const getArrayOfRoce = (historicData) => {
-  return historicData.map(singleHistoricData => (Number(calculateRoce(singleHistoricData.operating_income, singleHistoricData.equity, singleHistoricData.financial_debt))))
+  return historicData.map(singleHistoricData => {
+    const financialDebt = calculateFinancialDebt(singleHistoricData.total_debt, singleHistoricData.long_term_capital_leases, singleHistoricData.short_term_capital_leases)
+    return Number(calculateRoce(
+      singleHistoricData.operating_income,
+      singleHistoricData.equity,
+      financialDebt
+    ))
+  })
 }
 
 export const getReinvestMentRate = (i, historicData = undefined, arrayOfHistoricFcf = undefined) => {
