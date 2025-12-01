@@ -38,7 +38,7 @@ const calculateCurrentRatio = (stockHistoricInfo) => {
   ).toFixed(2)
 }
 
-export const calculateRoe = (equityT, equityMinusT, netIncome, index) => {
+export const calculateNormalizedRoe = (equityT, equityMinusT, netIncome, index) => {
   if (index === 0) {
     return (Number(netIncome) / Number(equityT) * 100).toFixed(2)
   } else {
@@ -76,7 +76,7 @@ export const calculateRoic = (operatingIncome, incomeTaxExpense, incomeBeforeTax
   return ((NOPAT / investedCapital) * 100).toFixed(2)
 }
 
-export const calculateRoce = (operatingIncomeT, operatingIncomeMinusT, equityT, equityMinusT, financialDebtT, financialDebtMinusT, index = null) => {
+export const calculateNormalizedRoce = (operatingIncomeT, operatingIncomeMinusT, equityT, equityMinusT, financialDebtT, financialDebtMinusT, index = null) => {
   if (index === 0) {
     return (Number(operatingIncomeT) / (Number(financialDebtT) + Number(equityT)) * 100).toFixed(2)
   } else {
@@ -270,11 +270,9 @@ function evaluarTendencia (margenesOperativos) {
 
   const n = margenesOperativos.length
 
-  // Crear array de años (0, 1, 2, ..., n-1)
   const x = Array.from({ length: n }, (_, i) => i)
   const y = margenesOperativos
 
-  // Calcular sumas necesarias para regresión lineal
   let sum_x = 0
   let sum_y = 0
   let sum_xy = 0
@@ -287,18 +285,13 @@ function evaluarTendencia (margenesOperativos) {
     sum_xx += x[i] * x[i]
   }
 
-  // Calcular pendiente (slope) de la regresión lineal
   const slope = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x * sum_x)
 
-  // Calcular el promedio de los valores para normalizar la pendiente
   const promedio = sum_y / n
 
-  // Normalizar la pendiente como porcentaje del valor promedio
-  // Esto convierte la pendiente absoluta en una tasa de cambio relativa
   const pendienteNormalizada = promedio !== 0 ? slope / Math.abs(promedio) : slope
-
-  // Umbral: 0.5% de cambio anual respecto al promedio
-  const UMBRAL_NEUTRAL = 0.005
+  console.log(pendienteNormalizada)
+  const UMBRAL_NEUTRAL = 0.02
 
   if (pendienteNormalizada > UMBRAL_NEUTRAL) {
     return 'Positive'
@@ -323,6 +316,22 @@ const getArrayOfGrossMargin = (historicData) => {
 }
 const getArrayOfRoic = (historicData) => {
   return historicData.map(singleHistoricData => (Number(calculateRoic(singleHistoricData.operating_income, singleHistoricData.income_tax_expense, singleHistoricData.income_before_taxes, singleHistoricData.total_debt, singleHistoricData.total_cash, singleHistoricData.equity))))
+}
+
+export const calculateRoce = (operatingIncomeT, equityT, financialDebtT) => {
+  return (Number(operatingIncomeT) / (Number(financialDebtT) + Number(equityT)) * 100).toFixed(2)
+}
+
+export const calculateRoe = (equity, netIncome) => {
+  return (Number(netIncome) / (Number(equity)) * 100).toFixed(2)
+}
+
+export const getArrayOfRoe = (historicData) => {
+  return historicData.map(singleHistoricData => (Number(calculateRoe(singleHistoricData.equity, singleHistoricData.net_income))))
+}
+
+export const getArrayOfRoce = (historicData) => {
+  return historicData.map(singleHistoricData => (Number(calculateRoce(singleHistoricData.operating_income, singleHistoricData.equity, singleHistoricData.financial_debt))))
 }
 
 export const getReinvestMentRate = (i, historicData = undefined, arrayOfHistoricFcf = undefined) => {
@@ -432,8 +441,9 @@ export const getUpdatedMetricData = (arrayOfHistoricData, changeInNetWorkingCapi
 
   const arrayOfOperatingMargin = getArrayOfOperatingMargin(arrayWithoutTtmData)
   const arrayOfGrossMargin = getArrayOfGrossMargin(arrayWithoutTtmData)
-  const arrayOfRoic = getArrayOfRoic(arrayWithoutTtmData)
+  const arrayOfRoic = getArrayOfRoce(arrayWithoutTtmData)
 
+  console.log(arrayOfRoic)
   const scoreMetrics = {
     debt: debtToEbitda,
     currentRatio: currentRatio,
@@ -484,7 +494,7 @@ export const getUpdatedMetricData = (arrayOfHistoricData, changeInNetWorkingCapi
     freeCashFlowMargin,
     ebitdaMargin,
     median,
-    calculateRoce
+    calculateRoce: calculateNormalizedRoce
   }
 }
 
@@ -500,8 +510,8 @@ export const preparationForHistoricMetrics = (stockHistoric, arrayOfHistoricData
   const financialDebtT = calculateFinancialDebt(arrayOfHistoricData[index]?.total_debt, arrayOfHistoricData[index]?.long_term_capital_leases, arrayOfHistoricData[index]?.short_term_capital_leases)
   const financialDebtMinusT = index === 0 ? 0 : calculateFinancialDebt(arrayOfHistoricData[index - 1]?.total_debt, arrayOfHistoricData[index - 1]?.long_term_capital_leases, arrayOfHistoricData[index - 1]?.short_term_capital_leases)
 
-  const ROE = calculateRoe(equityT, equityMinusT, stockHistoric.net_income, index)
-  const ROCE = calculateRoce(operatingIncomeT, operatingIncomeMinusT, equityT, equityMinusT, financialDebtT, financialDebtMinusT, index)
+  const ROE = calculateNormalizedRoe(equityT, equityMinusT, stockHistoric.net_income, index)
+  const ROCE = calculateNormalizedRoce(operatingIncomeT, operatingIncomeMinusT, equityT, equityMinusT, financialDebtT, financialDebtMinusT, index)
   const ROIC = calculateRoic(stockHistoric.operating_income, stockHistoric.income_tax_expense, stockHistoric.income_before_taxes, stockHistoric.total_debt, stockHistoric.total_cash, stockHistoric.equity)
   const structuralGrowthRoe = calculateStructuralGrowthRoe(ROE, net_income, dividends_paid, repurchased_shares)
   const structuralGrowthRoic = calculateStructuralGrowthRoic(ROIC, operating_income, income_tax_expense, income_before_taxes, dividends_paid, repurchased_shares)
