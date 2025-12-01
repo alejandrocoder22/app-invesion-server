@@ -230,10 +230,7 @@ export const calculateScore = (allScoreMetrics) => defaultStrategy(allScoreMetri
 export const calculateRealFcf = (stockData) => {
   const workingCapital = stockData.reported_change_in_working_capital || stockData.change_in_working_capital || 0
 
-  const getMaintenanceCapex = Number((stockData.depreciation_and_amortization) / stockData.capital_expenditures) * 100
-  const normalisedMaintenanceCapex = getMaintenanceCapex < -100 ? -100 : getMaintenanceCapex.toFixed(2)
-  const capexExGrowth = Math.abs(stockData.capital_expenditures * (Number(normalisedMaintenanceCapex) / 100)) * -1
-  const realFcf = (Number(stockData.operating_income) + Number(stockData.interest_expense) + Number(stockData.interest_income) + Number(stockData.income_tax_expense) + Number(stockData.depreciation_and_amortization) + Number(workingCapital) + Number(capexExGrowth)).toFixed(2)
+  const realFcf = (Number(stockData.operating_income) + Number(stockData.interest_expense) + Number(stockData.interest_income) + Number(stockData.income_tax_expense) + Number(stockData.depreciation_and_amortization) + Number(workingCapital) + Number(stockData.capital_expenditures)).toFixed(2)
   return realFcf
 }
 
