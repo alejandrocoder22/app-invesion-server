@@ -545,7 +545,12 @@ const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
       reinvestmentRate,
       debtCapitalAllocation,
       sharesCapitalAllocation,
-      dividendsCapitalAllocation
+      dividendsCapitalAllocation,
+      daysInventoryOutstanding,
+      daysSalesOutstanding,
+      daysPayableOutstanding,
+      cashConversionCycle
+
     } = historicMetricData
 
     const sanitize = (value) => {
@@ -576,11 +581,15 @@ const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
       sanitize(reinvestmentRate),
       sanitize(debtCapitalAllocation),
       sanitize(sharesCapitalAllocation),
-      sanitize(dividendsCapitalAllocation)
+      sanitize(dividendsCapitalAllocation),
+      sanitize(daysInventoryOutstanding),
+      sanitize(daysSalesOutstanding),
+      sanitize(daysPayableOutstanding),
+      sanitize(cashConversionCycle)
     ]
   })
 
-  const columnsPerRow = 23
+  const columnsPerRow = 27
   const placeholders = values.map((_, rowIndex) => {
     const rowPlaceholders = Array.from(
       { length: columnsPerRow },
@@ -615,7 +624,11 @@ const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
       reinvestment_rate,
       debt_capital_allocation,
       shares_capital_allocation,
-      dividends_capital_allocation
+      dividends_capital_allocation,
+      days_inventory_outstanding,
+      days_sales_outstanding,
+      days_payable_outstanding,
+      cash_conversion_cycle
     ) VALUES ${placeholders}
     ON CONFLICT (company_id, fiscal_year, period_type)
     DO UPDATE SET
@@ -640,7 +653,11 @@ const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
       reinvestment_rate = EXCLUDED.reinvestment_rate,
       debt_capital_allocation = EXCLUDED.debt_capital_allocation,
       shares_capital_allocation = EXCLUDED.shares_capital_allocation,
-      dividends_capital_allocation = EXCLUDED.dividends_capital_allocation
+      dividends_capital_allocation = EXCLUDED.dividends_capital_allocation,
+      days_inventory_outstanding = EXCLUDED.days_inventory_outstanding,
+      days_sales_outstanding = EXCLUDED.days_sales_outstanding,
+      days_payable_outstanding = EXCLUDED.days_payable_outstanding,
+      cash_conversion_cycle = EXCLUDED.cash_conversion_cycle
   `
 
   try {
@@ -927,7 +944,11 @@ const createHistoricMetrics = async (stockHistoricData, companyId, client) => {
       reinvestmentRate,
       debtCapitalAllocation,
       sharesCapitalAllocation,
-      dividendsCapitalAllocation
+      dividendsCapitalAllocation,
+      daysInventoryOutstanding,
+      daysSalesOutstanding,
+      daysPayableOutstanding,
+      cashConversionCycle
     } = historicMetricData
 
     const sanitize = (value) => {
@@ -958,11 +979,15 @@ const createHistoricMetrics = async (stockHistoricData, companyId, client) => {
       sanitize(reinvestmentRate),
       sanitize(debtCapitalAllocation),
       sanitize(sharesCapitalAllocation),
-      sanitize(dividendsCapitalAllocation)
+      sanitize(dividendsCapitalAllocation),
+      sanitize(daysInventoryOutstanding),
+      sanitize(daysSalesOutstanding),
+      sanitize(daysPayableOutstanding),
+      sanitize(cashConversionCycle)
     ]
   })
 
-  const columnsPerRow = 23
+  const columnsPerRow = 27
   const placeholders = values.map((_, rowIndex) => {
     const rowPlaceholders = Array.from(
       { length: columnsPerRow },
@@ -997,7 +1022,11 @@ const createHistoricMetrics = async (stockHistoricData, companyId, client) => {
       reinvestment_rate,
       debt_capital_allocation,
       shares_capital_allocation,
-      dividends_capital_allocation
+      dividends_capital_allocation,
+      days_inventory_outstanding,
+      days_sales_outstanding,
+      days_payable_outstanding,
+      cash_conversion_cycle
    
     ) VALUES ${placeholders}
   `

@@ -374,6 +374,19 @@ export const getConsecutiveYearsPayingDividend = (arrayOfHistoricData) => {
   return Number(consecutiveYears)
 }
 
+export const calculateDaysInventoryOutstanding = (inventoryT, inventoryTminusOne, cost_of_goods_sold) => {
+  return (((Number(inventoryT) + Number(inventoryTminusOne)) / 2 / Number(cost_of_goods_sold)) * 365).toFixed(2)
+}
+export const calculateDaysPayableOutstanding = (accounts_payableT, accounts_payableMinusT, cost_of_goods_sold) => {
+  return (((Number(accounts_payableT) + Number(accounts_payableMinusT)) / 2 / Number(cost_of_goods_sold)) * 365).toFixed(2)
+}
+export const calculateDaysSalesOutstanding = (accountsReceivableT, accountsReceivableMinusT, revenue) => {
+  return (((Number(accountsReceivableT) + Number(accountsReceivableMinusT)) / 2 / Number(revenue)) * 365).toFixed(2)
+}
+export const calculateCashConversionCycle = (DIO, DSO, DPO) => {
+  return (Number(DIO) + Number(DSO) - Number(DPO)).toFixed(2)
+}
+
 export const getUpdatedMetricData = (arrayOfHistoricData, changeInNetWorkingCapital, arrayOfHistoricFcf) => {
   const ttmData = getLastItemOfArray(arrayOfHistoricData)
 
@@ -497,10 +510,19 @@ export const getUpdatedMetricData = (arrayOfHistoricData, changeInNetWorkingCapi
 }
 
 export const preparationForHistoricMetrics = (stockHistoric, arrayOfHistoricData, index) => {
-  const { total_cash, debt_repaid, debt_issued, depreciation_and_amortization, revenue, operating_income, equity, total_debt, income_tax_expense, income_before_taxes, dividends_paid, net_income, repurchased_shares } = stockHistoric
+  const { cost_of_goods_sold, debt_repaid, debt_issued, depreciation_and_amortization, revenue, operating_income, equity, total_debt, income_tax_expense, income_before_taxes, dividends_paid, net_income, repurchased_shares } = stockHistoric
 
   const equityT = arrayOfHistoricData[index]?.equity
   const equityMinusT = index === 0 ? 0 : arrayOfHistoricData[index - 1]?.equity
+
+  const inventoryT = arrayOfHistoricData[index]?.inventories
+  const inventoryMinusT = index === 0 ? 0 : arrayOfHistoricData[index - 1]?.inventories
+
+  const accountsPayableT = arrayOfHistoricData[index]?.accounts_payable
+  const accountsPayableMinusT = index === 0 ? 0 : arrayOfHistoricData[index - 1]?.accounts_payable
+
+  const accountsReceivableT = arrayOfHistoricData[index]?.accounts_receivable
+  const accountsReceivableMinusT = index === 0 ? 0 : arrayOfHistoricData[index - 1]?.accounts_receivable
 
   const operatingIncomeT = arrayOfHistoricData[index]?.operating_income
   const operatingIncomeMinusT = index === 0 ? 0 : arrayOfHistoricData[index - 1]?.operating_income
@@ -529,6 +551,10 @@ export const preparationForHistoricMetrics = (stockHistoric, arrayOfHistoricData
   const debtCapitalAllocation = calculateDebtCapitalAllocation(debt_repaid, debt_issued, freeCashFlow)
   const sharesCapitalAllocation = calculateSharesCapitalAllocation(repurchased_shares, freeCashFlow)
   const dividendsCapitalAllocation = calculateDividendsCapitalAllocation(freeCashFlow, dividends_paid)
+  const daysInventoryOutstanding = calculateDaysInventoryOutstanding(inventoryT, inventoryMinusT, cost_of_goods_sold)
+  const daysSalesOutstanding = calculateDaysSalesOutstanding(accountsReceivableT, accountsReceivableMinusT, revenue)
+  const daysPayableOutstanding = calculateDaysPayableOutstanding(accountsPayableT, accountsPayableMinusT, cost_of_goods_sold)
+  const cashConversionCycle = calculateCashConversionCycle(daysInventoryOutstanding, daysSalesOutstanding, daysPayableOutstanding)
 
   return {
     ROE,
@@ -551,6 +577,10 @@ export const preparationForHistoricMetrics = (stockHistoric, arrayOfHistoricData
     reinvestmentRate,
     debtCapitalAllocation,
     sharesCapitalAllocation,
-    dividendsCapitalAllocation
+    daysInventoryOutstanding,
+    dividendsCapitalAllocation,
+    daysSalesOutstanding,
+    daysPayableOutstanding,
+    cashConversionCycle
   }
 }
