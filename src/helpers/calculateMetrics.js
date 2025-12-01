@@ -290,7 +290,6 @@ function evaluarTendencia (margenesOperativos) {
   const promedio = sum_y / n
 
   const pendienteNormalizada = promedio !== 0 ? slope / Math.abs(promedio) : slope
-  console.log(pendienteNormalizada)
   const UMBRAL_NEUTRAL = 0.02
 
   if (pendienteNormalizada > UMBRAL_NEUTRAL) {
@@ -443,7 +442,6 @@ export const getUpdatedMetricData = (arrayOfHistoricData, changeInNetWorkingCapi
   const arrayOfGrossMargin = getArrayOfGrossMargin(arrayWithoutTtmData)
   const arrayOfRoic = getArrayOfRoce(arrayWithoutTtmData)
 
-  console.log(arrayOfRoic)
   const scoreMetrics = {
     debt: debtToEbitda,
     currentRatio: currentRatio,
