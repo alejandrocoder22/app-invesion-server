@@ -1,3 +1,6 @@
+
+
+
 CREATE DATABASE invesion_app;
 
 CREATE TABLE company_info (
@@ -147,6 +150,12 @@ CREATE TABLE historic_metrics (
     debt_capital_allocation NUMERIC(10,2),
     shares_capital_allocation NUMERIC(10,2),
     dividends_capital_allocation NUMERIC(10,2),
+
+    days_inventory_outstanding NUMERIC(22,4),
+    days_sales_outstanding NUMERIC(22,4),
+    days_payable_outstanding NUMERIC(22,4),
+    cash_conversion_cycle NUMERIC(22,4),
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE NULLS NOT DISTINCT (company_id, fiscal_year, period_type)

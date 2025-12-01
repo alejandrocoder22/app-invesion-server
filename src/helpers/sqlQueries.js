@@ -37,6 +37,10 @@ export const getHistoricMetricsSql = `
       debt_capital_allocation,
       shares_capital_allocation,
       dividends_capital_allocation,
+      days_inventory_outstanding,
+      days_sales_outstanding,
+      days_payable_outstanding,
+      cash_conversion_cycle,
       created_at,
       updated_at,
       ROW_NUMBER() OVER (
