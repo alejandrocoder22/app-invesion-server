@@ -49,7 +49,7 @@ SET
     net_debt_issued = $19,
     issued_shares = $20,
     net_repurchased_shares = $21,
-    free_cash_flow_to_firm = $22
+    free_cash_flow_to_firm = $22,
     updated_at = NOW()
 WHERE company_id = $1 AND period_type = $16
 `

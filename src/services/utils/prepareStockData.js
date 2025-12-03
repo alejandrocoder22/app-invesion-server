@@ -15,9 +15,6 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
     const FCFE = calculateRealFcf(stockInfo, changeInWorkingCapital)
     const FCFF = calculateFCFF(stockInfo, changeInWorkingCapital)
     const simpleFcf = calculateSimpleFcf(stockInfo)
-    const maintenanceCapexPercentage = Number((stockInfo?.depreciation_and_amortization) / Number((stockInfo?.capital_expenditures)))
-    const maintenanceCapexNormalised = maintenanceCapexPercentage < -1 ? -1 : maintenanceCapexPercentage
-    const maintenanceCapex = (Number(stockInfo.capital_expenditures) * maintenanceCapexNormalised).toFixed(2)
     const debtIssued = Number(stockInfo.debt_issued || 0)
     const debtRepaid = Number(stockInfo.debt_repaid || 0)
     const repurchasedShares = Number(stockInfo.repurchased_shares || 0)
@@ -25,7 +22,6 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
     const netRepurchasedShares = repurchasedShares + issuedShares
 
     const netDebtIssued = (debtIssued + debtRepaid).toFixed(2)
-    console.log(FCFF)
     return {
       ...stockInfo,
       period_type: isTtm ? 'ttm' : 'annual',
