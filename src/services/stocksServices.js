@@ -169,6 +169,7 @@ const getOneStockTenYearsHistoric = (companyId) => query(
         c.net_debt_issued,
         c.net_repurchased_shares,
         c.issued_shares,
+        c.free_cash_flow_to_firm,
         ROW_NUMBER() OVER (
           PARTITION BY i.period_type 
           ORDER BY i.fiscal_year DESC
@@ -375,7 +376,8 @@ const updateCashFlowStatement = async (stockDataToUpdate, companyId, client) => 
         Number(data.reported_change_in_working_capital) || 0,
         Number(data.net_debt_issued) || 0,
         Number(data.issued_shares) || 0,
-        Number(data.net_repurchased_shares) || 0
+        Number(data.net_repurchased_shares) || 0,
+        Number(data.free_cash_flow_to_firm) || 0
       ]
 
       return client.query(sql, params)

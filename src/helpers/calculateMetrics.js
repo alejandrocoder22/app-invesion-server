@@ -247,13 +247,13 @@ export const calculateRealFcf = (stockData) => {
 }
 
 export const calculateFCFF = (stockData) => {
-  const workingCapital = stockData.reported_change_in_working_capital || stockData.change_in_working_capital || 0
+  const workingCapital = Number(stockData.reported_change_in_working_capital) || Number(stockData.change_in_working_capital) || 0
 
   const taxRate = (Number(stockData.income_tax_expense) / Number(stockData.income_tax_expense))
 
-  const FCFF = (Number(stockData.operating_income) * (1 + taxRate) + stockData.depreciation_and_amortization + workingCapital + stockData.capital_expenditures)
+  const FCFF = (Number(stockData.operating_income) * (1 + Number(taxRate)) + Number(stockData.depreciation_and_amortization) + workingCapital + Number(stockData.capital_expenditures))
 
-  return FCFF
+  return FCFF.toFixed(2)
 }
 
 export const calculateTotalUnearnedRevenues = (unearnedRevenuesCurrent, unearnedRevenuesNonCurrent) => {
