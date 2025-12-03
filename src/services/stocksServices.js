@@ -1333,9 +1333,10 @@ const updateTtmCashFlowsStatement = async (stockData, companyId, client, lastYea
     lastYearWorkingCapital
   )
 
-  const fcf = calculateFFCFE(stockInfo, changeInNetWorkingCapital)
+  const FCFE = calculateFFCFE(stockInfo, changeInNetWorkingCapital)
+  const FCFF = calculateFFCFE(stockInfo, changeInNetWorkingCapital)
 
-  const reinvestmentRate = getReinvestMentRate(index, stockData, fcf)
+  const reinvestmentRate = getReinvestMentRate(index, stockData, FCFE)
   const safeReinvestmentRate = isFinite(reinvestmentRate) ? reinvestmentRate : 0
 
   const workingCapital = calculateWorkingCapital(
@@ -1366,9 +1367,10 @@ const updateTtmCashFlowsStatement = async (stockData, companyId, client, lastYea
       safeReinvestmentRate,
       workingCapital,
       Number(stockInfo.depreciation_and_amortization) || 0,
-      fcf,
+      FCFE,
       'ttm',
-      unleaveredFcf
+      unleaveredFcf,
+      FCFF
     ])
 
     return result
