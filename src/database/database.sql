@@ -1,7 +1,7 @@
 
 ALTER TABLE cash_flow_statements RENAME free_cash_flow to free_cash_flow_to_equity;
 ALTER TABLE cash_flow_statements ADD COLUMN  free_cash_flow_to_firm NUMERIC(20,4);
-ALTER TABLE cash_flow_statements ADD COLUMN  other_operating_activities NUMERIC(20,4);
+
 
 
 CREATE DATABASE invesion_app;
@@ -123,7 +123,6 @@ CREATE TABLE cash_flow_statements (
     simple_free_cash_flow NUMERIC(20,4),
     net_debt_issued NUMERIC(20,4),
     sale_of_assets NUMERIC(20,4),
-    other_operating_activities(20,4),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(company_id, fiscal_year)

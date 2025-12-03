@@ -377,8 +377,7 @@ const updateCashFlowStatement = async (stockDataToUpdate, companyId, client) => 
         Number(data.net_debt_issued) || 0,
         Number(data.issued_shares) || 0,
         Number(data.net_repurchased_shares) || 0,
-        Number(data.free_cash_flow_to_firm) || 0,
-        Number(data.other_operating_activities) || 0
+        Number(data.free_cash_flow_to_firm) || 0
 
       ]
 
@@ -1084,6 +1083,7 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
 
     const repurchasedShares = Number(stockInfo.repurchased_shares) || 0
     const issuedShares = Number(stockInfo.issued_shares) || 0
+
     const netRepurchasedShares = repurchasedShares + issuedShares
 
     const reinvestmentRate = getReinvestMentRate(index, stockHistoricData, addYearFcf)
@@ -1123,8 +1123,7 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       netDebtIssued,
       netRepurchasedShares,
       issuedShares,
-      FCFF,
-      Number(stockInfo.other_operating_activities) || 0
+      FCFF
     ]
   })
 
@@ -1163,8 +1162,8 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       net_debt_issued,
       net_repurchased_shares,
       issued_shares,
-      free_cash_flow_to_firm,
-      other_operating_activities
+      free_cash_flow_to_firm
+      
     ) VALUES ${placeholders}
   `
 

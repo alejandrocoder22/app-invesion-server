@@ -256,6 +256,11 @@ export const calculateFCFF = (stockData) => {
   return FCFF.toFixed(2)
 }
 
+export const calculateSimpleFcf = (stockData) => {
+  const simpleFcf = Number(stockData.operating_cash_flow) + Number(stockData.capital_expenditures) - Number(stockData.stocks_compensations)
+  return simpleFcf.toFixed(2)
+}
+
 export const calculateTotalUnearnedRevenues = (unearnedRevenuesCurrent, unearnedRevenuesNonCurrent) => {
   const unearnedCurrent = unearnedRevenuesCurrent || 0
   const unearnedNonCurrent = unearnedRevenuesNonCurrent || 0

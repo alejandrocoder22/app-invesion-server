@@ -1,4 +1,4 @@
-import { calculateChangeInWorkingCapital, calculateFCFF, calculateRealFcf, calculateWorkingCapital, getReinvestMentRate } from '../../helpers/calculateMetrics.js'
+import { calculateChangeInWorkingCapital, calculateFCFF, calculateRealFcf, calculateSimpleFcf, calculateWorkingCapital, getReinvestMentRate } from '../../helpers/calculateMetrics.js'
 
 export const prepareCashFlowData = (stockDataToUpdate) => {
   return stockDataToUpdate.map((stockInfo, i) => {
@@ -14,7 +14,7 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
 
     const FCFE = calculateRealFcf(stockInfo, changeInWorkingCapital)
     const FCFF = calculateFCFF(stockInfo, changeInWorkingCapital)
-
+    const simpleFcf = calculateSimpleFcf(stockInfo)
     const maintenanceCapexPercentage = Number((stockInfo?.depreciation_and_amortization) / Number((stockInfo?.capital_expenditures)))
     const maintenanceCapexNormalised = maintenanceCapexPercentage < -1 ? -1 : maintenanceCapexPercentage
     const maintenanceCapex = (Number(stockInfo.capital_expenditures) * maintenanceCapexNormalised).toFixed(2)
@@ -23,6 +23,7 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
     const repurchasedShares = Number(stockInfo.repurchased_shares || 0)
     const issuedShares = Number(stockInfo.issued_shares || 0)
     const netRepurchasedShares = repurchasedShares + issuedShares
+
     const netDebtIssued = (debtIssued + debtRepaid).toFixed(2)
     console.log(FCFF)
     return {
@@ -33,7 +34,7 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
       free_cash_flow: FCFE,
       free_cash_flow_to_firm: FCFF,
       reinvestment_rate: isFinite(getReinvestMentRate(i, stockDataToUpdate, FCFE)) ? getReinvestMentRate(i, stockDataToUpdate, FCFE) : 0,
-      simple_free_cash_flow: Number(stockInfo.operating_cash_flow) - Number(maintenanceCapex),
+      simple_free_cash_flow: simpleFcf,
       net_debt_issued: netDebtIssued,
       net_repurchased_shares: netRepurchasedShares
     }
