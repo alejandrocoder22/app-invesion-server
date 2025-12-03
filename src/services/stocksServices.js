@@ -377,7 +377,9 @@ const updateCashFlowStatement = async (stockDataToUpdate, companyId, client) => 
         Number(data.net_debt_issued) || 0,
         Number(data.issued_shares) || 0,
         Number(data.net_repurchased_shares) || 0,
-        Number(data.free_cash_flow_to_firm) || 0
+        Number(data.free_cash_flow_to_firm) || 0,
+        Number(data.other_operating_activities) || 0
+
       ]
 
       return client.query(sql, params)
@@ -1121,7 +1123,8 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       netDebtIssued,
       netRepurchasedShares,
       issuedShares,
-      FCFF
+      FCFF,
+      Number(stockInfo.other_operating_activities) || 0
     ]
   })
 
@@ -1160,7 +1163,8 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       net_debt_issued,
       net_repurchased_shares,
       issued_shares,
-      free_cash_flow_to_firm
+      free_cash_flow_to_firm,
+      other_operating_activities
     ) VALUES ${placeholders}
   `
 
