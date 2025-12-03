@@ -148,6 +148,17 @@ const deleteStock = (req, res, next) => {
     next(error)
   }
 }
+const deleteEstimationsAdmin = (req, res, next) => {
+  const { companyId } = req.params
+
+  try {
+    stocksServices.deleteEstimationsAdmin(companyId)
+
+    handleSuccess(res, {}, 'Stock deleted')
+  } catch (error) {
+    next(error)
+  }
+}
 
 const deleteStockFromPortfolio = async (req, res, next) => {
   const { companyId } = req.params
@@ -629,7 +640,7 @@ const getCountries = async (req, res) => res.send(countries)
 const getIndustries = async (req, res) => res.send(industries)
 
 export default {
-
+  deleteEstimationsAdmin,
   getForex,
   updateSharesOwned,
   getAllOwnedTickers,

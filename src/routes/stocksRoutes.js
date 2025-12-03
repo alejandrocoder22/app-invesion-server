@@ -31,6 +31,7 @@ router.get('/estimations/:companyId', stockControllers.getEstimations)
 
 router.delete('/:companyId', validateAdmin, stockControllers.deleteStock)
 router.delete('/portfolio/:companyId', validateToken, stockControllers.deleteStockFromPortfolio)
+router.delete('/estimations/:companyId', validateAdmin, stockControllers.deleteEstimationsAdmin)
 
 router.put('/:companyId', validateAdmin, stockControllers.updateStock)
 router.put('/buy-price/:companyId', validateToken, stockControllers.updateBuyPrice)

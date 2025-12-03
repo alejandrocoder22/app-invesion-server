@@ -4,14 +4,15 @@ import {
   calculateScore,
   getUpdatedMetricData,
   calculateChangeInWorkingCapital,
-  calculateRealFcf,
+  calculateRealFcf as calculateFFCFE,
   calculateWorkingCapital,
   getReinvestMentRate,
   preparationForHistoricMetrics,
   calculateCostOfDebt,
   calculateTotalUnearnedRevenues,
   calculateFinancialDebt,
-  calculateTaxRate
+  calculateTaxRate,
+  calculateFCFF
 } from '../helpers/calculateMetrics.js'
 
 import {
@@ -69,7 +70,7 @@ SELECT
       istm.income_tax_expense,
       bs.total_debt,
       bs.total_cash,
-      cf.free_cash_flow
+      cf.free_cash_flow_to_equity
 
 FROM company_info ci
 
@@ -162,7 +163,7 @@ const getOneStockTenYearsHistoric = (companyId) => query(
         c.working_capital,
         c.depreciation_and_amortization,
         c.sale_of_assets,
-        c.free_cash_flow,
+        c.free_cash_flow_to_equity,
         c.reported_change_in_working_capital,
         c.simple_free_cash_flow,
         c.net_debt_issued,
@@ -199,6 +200,7 @@ WHERE ticker = $1
   `, [ticker])
 
 const deleteStock = (companyId) => query('DELETE FROM company_info WHERE company_id = $1', [companyId])
+const deleteEstimationsAdmin = (companyId) => query('DELETE FROM stock_estimations WHERE company_id = $1', [companyId])
 
 const deleteStockFromPortfolio = async (companyId, userId) => {
   return query('DELETE from user_company_radar WHERE company_id = $1 AND user_id = $2', [companyId, userId])
@@ -454,7 +456,7 @@ const updateMetrics = async (arrayOfHistoricData, companyId, client) => {
     )
 
     const arrayOfHistoricFcf = arrayOfHistoricData.map((stock, i) =>
-      calculateRealFcf(arrayOfHistoricData[i], changeInNetWorkingCapital[i])
+      calculateFFCFE(arrayOfHistoricData[i], changeInNetWorkingCapital[i])
     )
 
     const metricsData = getUpdatedMetricData(
@@ -677,7 +679,7 @@ const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
 const createMetrics = async (arrayOfHistoricData, companyId, client) => {
   try {
     const changeInNetWorkingCapital = arrayOfHistoricData.map((stock, i) => calculateChangeInWorkingCapital(i, arrayOfHistoricData))
-    const arrayOfHistoricFcf = arrayOfHistoricData.map((stock, i) => calculateRealFcf(arrayOfHistoricData[i], changeInNetWorkingCapital[i]))
+    const arrayOfHistoricFcf = arrayOfHistoricData.map((stock, i) => calculateFFCFE(arrayOfHistoricData[i], changeInNetWorkingCapital[i]))
 
     const metricsData = getUpdatedMetricData(arrayOfHistoricData, changeInNetWorkingCapital, arrayOfHistoricFcf)
 
@@ -1063,8 +1065,11 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       changeInNetWorkingCapital = calculateChangeInWorkingCapital(index, stockHistoricData, lastYearWorkingCapital)
     }
 
-    const fcf = calculateRealFcf(stockInfo, changeInNetWorkingCapital)
-    const addYearFcf = calculateRealFcf(
+    const FCFE = calculateFFCFE(stockInfo, changeInNetWorkingCapital)
+
+    const FCFF = calculateFCFF(stockInfo, changeInNetWorkingCapital)
+
+    const addYearFcf = calculateFFCFE(
       stockHistoricData,
       calculateChangeInWorkingCapital(index, stockHistoricData, lastYearWorkingCapital)
     )
@@ -1090,7 +1095,7 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       stockInfo.accrued_expenses,
       totalUnearnedRevenues
     )
-    const unleaveredFcf = Number(stockInfo.operating_cash_flow) + Number(stockInfo.capital_expenditures)
+    const simpleFcf = Number(stockInfo.operating_cash_flow) + Number(stockInfo.capital_expenditures)
 
     return [
       companyId,
@@ -1107,13 +1112,14 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       safeReinvestmentRate,
       workingCapital,
       Number(stockInfo.depreciation_and_amortization) || 0,
-      fcf,
+      FCFE,
       periodType,
-      unleaveredFcf,
+      simpleFcf,
       Number(stockInfo.reported_change_in_working_capital) || 0,
       netDebtIssued,
       netRepurchasedShares,
-      issuedShares
+      issuedShares,
+      FCFF
     ]
   })
 
@@ -1145,13 +1151,14 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       reinvestment_rate,
       working_capital,
       depreciation_and_amortization,
-      free_cash_flow,
+      free_cash_flow_to_equity,
       period_type,
       simple_free_cash_flow,
       reported_change_in_working_capital,
       net_debt_issued,
       net_repurchased_shares,
-      issued_shares
+      issued_shares,
+      free_cash_flow_to_firm
     ) VALUES ${placeholders}
   `
 
@@ -1174,7 +1181,7 @@ const createCashFlowStatementReit = async (stockHistoricData, companyId, client,
   try {
     return stockHistoricData.map((stockInfo, i) => {
       const FFO = (Number(stockInfo.net_income) + Number(stockInfo.depreciation_and_amortization) - Number(stockInfo.sale_of_assets)).toFixed(2)
-      const addYearFcf = calculateRealFcf(stockHistoricData, calculateChangeInWorkingCapital(i, stockHistoricData, lastYearWorkingCapital))
+      const addYearFcf = calculateFFCFE(stockHistoricData, calculateChangeInWorkingCapital(i, stockHistoricData, lastYearWorkingCapital))
       const totalUnearnedRevenues = calculateTotalUnearnedRevenues(stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current)
       client.query(createCashFlowStatemenReitSql,
 
@@ -1324,7 +1331,7 @@ const updateTtmCashFlowsStatement = async (stockData, companyId, client, lastYea
     lastYearWorkingCapital
   )
 
-  const fcf = calculateRealFcf(stockInfo, changeInNetWorkingCapital)
+  const fcf = calculateFFCFE(stockInfo, changeInNetWorkingCapital)
 
   const reinvestmentRate = getReinvestMentRate(index, stockData, fcf)
   const safeReinvestmentRate = isFinite(reinvestmentRate) ? reinvestmentRate : 0
@@ -1435,6 +1442,7 @@ const deleteAdminPriceEstimation = async (company_id, client) => {
 }
 
 export default {
+  deleteEstimationsAdmin,
   updateForwardEps,
   deleteAdminPriceEstimation,
   updatePrice,

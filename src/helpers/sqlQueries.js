@@ -84,7 +84,7 @@ SELECT
     bs.total_debt,
     
     -- Cash Flow Statement Data
-    cfs.free_cash_flow,
+    cfs.free_cash_flow_to_equity,
     cfs.reported_change_in_working_capital,
     
     -- Company Metrics Data
@@ -193,7 +193,7 @@ SELECT
     c.reinvestment_rate,
     c.working_capital,
     c.depreciation_and_amortization,
-    c.free_cash_flow,
+    c.free_cash_flow_to_equity,
     c.simple_free_cash_flow,
     c.sale_of_assets,
     c.reported_change_in_working_capital,
@@ -271,7 +271,7 @@ SELECT
     cfs.debt_issued,
     cfs.debt_repaid,
     cfs.reinvestment_rate,
-    cfs.free_cash_flow,
+    cfs.free_cash_flow_to_equity,
 
     
     -- Company Metrics Data
@@ -425,7 +425,7 @@ change_in_working_capital,
 reinvestment_rate,
 working_capital,
 depreciation_and_amortization,
-free_cash_flow,
+free_cash_flow_to_equity,
 period_type,
 simple_free_cash_flow,
 reported_change_in_working_capital,
@@ -454,7 +454,7 @@ change_in_working_capital,
 reinvestment_rate,
 working_capital,
 depreciation_and_amortization,
-free_cash_flow,
+free_cash_flow_to_equity,
 period_type,
 sale_of_assets
 )
@@ -692,7 +692,7 @@ change_in_working_capital = $10,
 reinvestment_rate = $11,
 working_capital = $12,
 depreciation_and_amortization = $13,
-free_cash_flow = $14,
+free_cash_flow_to_equity = $14,
 simple_free_cash_flow = $16,
 updated_at = NOW()
 WHERE company_id = $1 AND period_type = $15

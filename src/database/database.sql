@@ -1,4 +1,6 @@
 
+ALTER TABLE cash_flow_statements RENAME free_cash_flow to free_cash_flow_to_equity;
+ALTER TABLE cash_flow_statements ADD COLUMN  free_cash_flow_to_firm NUMERIC(20,4);
 
 
 CREATE DATABASE invesion_app;

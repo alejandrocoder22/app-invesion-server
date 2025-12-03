@@ -227,11 +227,33 @@ export const calculateChangeInWorkingCapital = (i, stockHistoricData, lastYearWo
 
 export const calculateScore = (allScoreMetrics) => defaultStrategy(allScoreMetrics)
 
+// export const calculateRealFcf = (stockData) => {
+//   const workingCapital = stockData.reported_change_in_working_capital || stockData.change_in_working_capital || 0
+
+//   const realFcf = (Number(stockData.operating_income) + Number(stockData.interest_expense) + Number(stockData.interest_income) + Number(stockData.income_tax_expense) + Number(stockData.depreciation_and_amortization) + Number(workingCapital) + Number(stockData.capital_expenditures)).toFixed(2)
+//   return realFcf
+// }
+
 export const calculateRealFcf = (stockData) => {
   const workingCapital = stockData.reported_change_in_working_capital || stockData.change_in_working_capital || 0
 
-  const realFcf = (Number(stockData.operating_income) + Number(stockData.interest_expense) + Number(stockData.interest_income) + Number(stockData.income_tax_expense) + Number(stockData.depreciation_and_amortization) + Number(workingCapital) + Number(stockData.capital_expenditures)).toFixed(2)
+  const debtIssued = Number(stockData.debt_issued) || 0
+  const debtRepaid = Number(stockData.debt_repaid) || 0
+
+  const netBorrow = debtIssued + debtRepaid
+
+  const realFcf = (Number(stockData.net_income) + Number(stockData.depreciation_and_amortization) + Number(workingCapital) + Number(stockData.capital_expenditures) + netBorrow).toFixed(2)
   return realFcf
+}
+
+export const calculateFCFF = (stockData) => {
+  const workingCapital = stockData.reported_change_in_working_capital || stockData.change_in_working_capital || 0
+
+  const taxRate = (Number(stockData.income_tax_expense) / Number(stockData.income_tax_expense))
+
+  const FCFF = (Number(stockData.operating_income) * (1 + taxRate) + stockData.depreciation_and_amortization + workingCapital + stockData.capital_expenditures)
+
+  return FCFF
 }
 
 export const calculateTotalUnearnedRevenues = (unearnedRevenuesCurrent, unearnedRevenuesNonCurrent) => {
