@@ -1,5 +1,5 @@
-import pool from '../database/database.js'
-import query from '../helpers/query.js'
+import pool from "../database/database.js";
+import query from "../helpers/query.js";
 import {
   calculateScore,
   getUpdatedMetricData,
@@ -12,8 +12,8 @@ import {
   calculateTotalUnearnedRevenues,
   calculateFinancialDebt,
   calculateTaxRate,
-  calculateFCFF
-} from '../helpers/calculateMetrics.js'
+  calculateFCFF,
+} from "../helpers/calculateMetrics.js";
 
 import {
   getAllStocskSql,
@@ -30,18 +30,20 @@ import {
   updateCashFlowStatementReitSql,
   getEmptyDescriptionsSql,
   updateBalanceSheetSqlTTM,
-  getHistoricMetricsSql
-} from '../helpers/sqlQueries.js'
-import { DatabaseError } from '../helpers/customErrors.js'
-import { prepareCashFlowData } from './utils/prepareStockData.js'
-import { cashFlowStatementsQueries } from './sql/cashFlowStatement.js'
+  getHistoricMetricsSql,
+} from "../helpers/sqlQueries.js";
+import { DatabaseError } from "../helpers/customErrors.js";
+import { prepareCashFlowData } from "./utils/prepareStockData.js";
+import { cashFlowStatementsQueries } from "./sql/cashFlowStatement.js";
 
-const getAllStocks = () => query(getAllStocskSql)
-const getHistoricMetrics = (companyId) => query(getHistoricMetricsSql, [companyId])
+const getAllStocks = () => query(getAllStocskSql);
+const getHistoricMetrics = (companyId) =>
+  query(getHistoricMetricsSql, [companyId]);
 
-const getDescriptionsLLM = () => query(getEmptyDescriptionsSql)
+const getDescriptionsLLM = () => query(getEmptyDescriptionsSql);
 
-const getComparativeTickers = async (tickers) => await pool.query(`
+const getComparativeTickers = async (tickers) =>
+  await pool.query(`
 
 SELECT 
       ci.company_id,
@@ -95,21 +97,27 @@ INNER JOIN (
 ) cf ON ci.company_id = cf.company_id
 
 WHERE ci.company_id IN (${tickers})
-`)
+`);
 
-const getAllOwnedStocks = (userId) => query(getAllOwnedStocskSql, [userId])
-const getAllOwnedTickers = (userId) => query(getAllOwnedTickersSql, [userId])
+const getAllOwnedStocks = (userId) => query(getAllOwnedStocskSql, [userId]);
+const getAllOwnedTickers = (userId) => query(getAllOwnedTickersSql, [userId]);
 
-const getAllTickers = () => query('SELECT ticker, company_id, company_name FROM company_info')
+const getAllTickers = () =>
+  query("SELECT ticker, company_id, company_name FROM company_info");
 
-const getOneStock = (ticker) => query(`
+const getOneStock = (ticker) =>
+  query(
+    `
 SELECT * FROM company_metrics  
 WHERE ticker = $1
 LIMIT 1
-`, [ticker])
+`,
+    [ticker]
+  );
 
-const getOneStockTenYearsHistoric = (companyId) => query(
-  `WITH ranked_data AS (
+const getOneStockTenYearsHistoric = (companyId) =>
+  query(
+    `WITH ranked_data AS (
     SELECT 
         ci.ticker,
         i.fiscal_year AS year,
@@ -192,39 +200,53 @@ const getOneStockTenYearsHistoric = (companyId) => query(
   ORDER BY 
     CASE WHEN year IS NULL THEN 9999 ELSE year END ASC,
     period_type ASC;`,
-  [companyId]
-)
+    [companyId]
+  );
 
-const getOneStockDescription = (ticker) => query(`
+const getOneStockDescription = (ticker) =>
+  query(
+    `
 SELECT * FROM company_info
 WHERE ticker = $1
-  `, [ticker])
+  `,
+    [ticker]
+  );
 
-const deleteStock = (companyId) => query('DELETE FROM company_info WHERE company_id = $1', [companyId])
-const deleteEstimationsAdmin = (companyId) => query('DELETE FROM stock_estimations WHERE company_id = $1', [companyId])
+const deleteStock = (companyId) =>
+  query("DELETE FROM company_info WHERE company_id = $1", [companyId]);
+const deleteEstimationsAdmin = (companyId) =>
+  query("DELETE FROM stock_estimations WHERE company_id = $1", [companyId]);
 
 const deleteStockFromPortfolio = async (companyId, userId) => {
-  return query('DELETE from user_company_radar WHERE company_id = $1 AND user_id = $2', [companyId, userId])
-}
+  return query(
+    "DELETE from user_company_radar WHERE company_id = $1 AND user_id = $2",
+    [companyId, userId]
+  );
+};
 
 const updateIncomeStatement = async (stockDataToUpdate, companyId, client) => {
   if (!stockDataToUpdate || stockDataToUpdate.length === 0) {
-    throw new DatabaseError('Stock data is required')
+    throw new DatabaseError("Stock data is required");
   }
 
   try {
     const updatePromises = stockDataToUpdate.map((stockInfo, index) => {
-      const operatingIncome = Number(stockInfo?.operating_income) || 0
-      const incomeTax = Number(stockInfo?.income_tax_expense) || 0
-      const incomeBeforeTax = Number(stockInfo?.income_before_taxes) || 0
+      const operatingIncome = Number(stockInfo?.operating_income) || 0;
+      const incomeTax = Number(stockInfo?.income_tax_expense) || 0;
+      const incomeBeforeTax = Number(stockInfo?.income_before_taxes) || 0;
 
-      const taxRate = calculateTaxRate(stockInfo.income_tax_expense, stockInfo.income_before_taxes)
-      const NOPAT = operatingIncome * (1 + (Number(taxRate) / 100))
-      const isTTM = index === 10
-      const fiscalYear = isTTM ? null : stockInfo.year
-      const periodType = isTTM ? 'ttm' : 'annual'
+      const taxRate = calculateTaxRate(
+        stockInfo.income_tax_expense,
+        stockInfo.income_before_taxes
+      );
+      const NOPAT = operatingIncome * (1 + Number(taxRate) / 100);
+      const isTTM = index === 10;
+      const fiscalYear = isTTM ? null : stockInfo.year;
+      const periodType = isTTM ? "ttm" : "annual";
 
-      const sql = isTTM ? updateIncomeStatementTtmSql : updateIncomeStatementSql
+      const sql = isTTM
+        ? updateIncomeStatementTtmSql
+        : updateIncomeStatementSql;
 
       const params = [
         companyId,
@@ -242,49 +264,60 @@ const updateIncomeStatement = async (stockDataToUpdate, companyId, client) => {
         periodType,
         NOPAT,
         Number(stockInfo.interest_income) || 0,
-        Number(taxRate) || 0
-      ]
+        Number(taxRate) || 0,
+      ];
 
-      const finalParams = isTTM && !updateIncomeStatementTtmSql.includes('fiscal_year')
-        ? [params[0], ...params.slice(2)] // Omite fiscal_year
-        : params
+      const finalParams =
+        isTTM && !updateIncomeStatementTtmSql.includes("fiscal_year")
+          ? [params[0], ...params.slice(2)] // Omite fiscal_year
+          : params;
 
-      return client.query(sql, finalParams)
-    })
+      return client.query(sql, finalParams);
+    });
 
-    const results = await Promise.all(updatePromises)
-    return results
+    const results = await Promise.all(updatePromises);
+    return results;
   } catch (error) {
-    console.error('Error updating income statements:', {
+    console.error("Error updating income statements:", {
       message: error.message,
       companyId,
       rowCount: stockDataToUpdate.length,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to update income statements', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to update income statements", error);
   }
-}
+};
 
 const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
   if (!stockDataToUpdate || stockDataToUpdate.length === 0) {
-    throw new DatabaseError('Stock data is required')
+    throw new DatabaseError("Stock data is required");
   }
 
   try {
     const updatePromises = stockDataToUpdate.map((stockInfo, index) => {
-      const longTermCapitalLeases = Number(stockInfo.long_term_capital_leases) || 0
-      const shortTermCapitalLeases = Number(stockInfo.short_term_capital_leases) || 0
-      const totalDebt = Number(stockInfo.total_debt) || 0
+      const longTermCapitalLeases =
+        Number(stockInfo.long_term_capital_leases) || 0;
+      const shortTermCapitalLeases =
+        Number(stockInfo.short_term_capital_leases) || 0;
+      const totalDebt = Number(stockInfo.total_debt) || 0;
 
-      const financialDebt = calculateFinancialDebt(totalDebt, longTermCapitalLeases, shortTermCapitalLeases)
-      const costOfDebt = calculateCostOfDebt(stockInfo.interest_expense, financialDebt) || 0
-      const isTTM = index === 10
-      const fiscalYear = isTTM ? null : stockInfo.year
-      const periodType = isTTM ? 'ttm' : 'annual'
+      const financialDebt = calculateFinancialDebt(
+        totalDebt,
+        longTermCapitalLeases,
+        shortTermCapitalLeases
+      );
+      const costOfDebt =
+        calculateCostOfDebt(stockInfo.interest_expense, financialDebt) || 0;
+      const isTTM = index === 10;
+      const fiscalYear = isTTM ? null : stockInfo.year;
+      const periodType = isTTM ? "ttm" : "annual";
 
-      const totalUnearnedRevenues = calculateTotalUnearnedRevenues(stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current)
+      const totalUnearnedRevenues = calculateTotalUnearnedRevenues(
+        stockInfo.unearned_revenues,
+        stockInfo.unearned_revenues_non_current
+      );
 
-      const sql = isTTM ? updateBalanceSheetSqlTTM : updateBalanceSheetSql
+      const sql = isTTM ? updateBalanceSheetSqlTTM : updateBalanceSheetSql;
       const baseParams = [
         companyId,
         Number(stockInfo.current_assets) || 0,
@@ -295,8 +328,12 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
         stockInfo.short_term_debt ? Number(stockInfo.short_term_debt) : null,
         stockInfo.long_term_debt ? Number(stockInfo.long_term_debt) : null,
         Number(stockInfo.total_debt) || 0,
-        stockInfo.long_term_capital_leases ? Number(stockInfo.long_term_capital_leases) : null,
-        stockInfo.short_term_capital_leases ? Number(stockInfo.short_term_capital_leases) : null,
+        stockInfo.long_term_capital_leases
+          ? Number(stockInfo.long_term_capital_leases)
+          : null,
+        stockInfo.short_term_capital_leases
+          ? Number(stockInfo.short_term_capital_leases)
+          : null,
         Number(stockInfo.unearned_revenues) || 0,
         Number(stockInfo.accounts_receivable) || 0,
         Number(stockInfo.accounts_payable) || 0,
@@ -308,9 +345,8 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
         costOfDebt,
         Number(stockInfo.prepaid_expenses) || 0,
         Number(stockInfo.accrued_expenses) || 0,
-        Number(totalUnearnedRevenues) || 0
-
-      ]
+        Number(totalUnearnedRevenues) || 0,
+      ];
 
       const params = isTTM
         ? baseParams
@@ -319,41 +355,46 @@ const updateBalanceSheet = async (stockDataToUpdate, companyId, client) => {
             fiscalYear,
             ...baseParams.slice(1, 14),
             periodType,
-            ...baseParams.slice(14)
-          ]
+            ...baseParams.slice(14),
+          ];
 
-      return client.query(sql, params)
-    })
+      return client.query(sql, params);
+    });
 
-    const results = await Promise.all(updatePromises)
-    return results
+    const results = await Promise.all(updatePromises);
+    return results;
   } catch (error) {
-    console.error('Error updating balance sheets:', {
+    console.error("Error updating balance sheets:", {
       message: error.message,
       companyId,
       rowCount: stockDataToUpdate.length,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to update balance sheets', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to update balance sheets", error);
   }
-}
+};
 
-const updateCashFlowStatement = async (stockDataToUpdate, companyId, client) => {
+const updateCashFlowStatement = async (
+  stockDataToUpdate,
+  companyId,
+  client
+) => {
   if (!stockDataToUpdate || stockDataToUpdate.length === 0) {
-    throw new DatabaseError('Stock data is required')
+    throw new DatabaseError("Stock data is required");
   }
   try {
-    const preparedData = prepareCashFlowData(stockDataToUpdate)
+    const preparedData = prepareCashFlowData(stockDataToUpdate);
 
     if (!preparedData || preparedData.length === 0) {
-      throw new DatabaseError('No data returned from prepareCashFlowData')
+      throw new DatabaseError("No data returned from prepareCashFlowData");
     }
 
-    const queries = preparedData.map(data => {
+    const queries = preparedData.map((data) => {
       // Determinar qué SQL usar basado en period_type
-      const sql = data.period_type === 'ttm'
-        ? cashFlowStatementsQueries.updateTtm
-        : cashFlowStatementsQueries.update
+      const sql =
+        data.period_type === "ttm"
+          ? cashFlowStatementsQueries.updateTtm
+          : cashFlowStatementsQueries.update;
 
       const params = [
         companyId,
@@ -377,102 +418,110 @@ const updateCashFlowStatement = async (stockDataToUpdate, companyId, client) => 
         Number(data.net_debt_issued) || 0,
         Number(data.issued_shares) || 0,
         Number(data.net_repurchased_shares) || 0,
-        Number(data.free_cash_flow_to_firm) || 0
+        Number(data.free_cash_flow_to_firm) || 0,
+      ];
 
-      ]
+      return client.query(sql, params);
+    });
 
-      return client.query(sql, params)
-    })
-
-    const results = await Promise.all(queries)
-    return results
+    const results = await Promise.all(queries);
+    return results;
   } catch (error) {
-    console.error('Error updating cash flow statements:', {
+    console.error("Error updating cash flow statements:", {
       message: error.message,
       companyId,
       rowCount: stockDataToUpdate?.length,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to update cash flow statements', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to update cash flow statements", error);
   }
-}
+};
 
-const updateCashFlowStatementReit = async (stockDataToUpdate, companyId, client) => {
+const updateCashFlowStatementReit = async (
+  stockDataToUpdate,
+  companyId,
+  client
+) => {
   try {
     return stockDataToUpdate.map(async (stockInfo, i) => {
-      const FFO = (Number(stockInfo.net_income) + Number(stockInfo.depreciation_and_amortization) - Number(stockInfo.sale_of_assets)).toFixed(2)
+      const FFO = (
+        Number(stockInfo.net_income) +
+        Number(stockInfo.depreciation_and_amortization) -
+        Number(stockInfo.sale_of_assets)
+      ).toFixed(2);
       i === 10
         ? await client.query(updateTtmReitCashFlowStatementSql, [
-          companyId, // company_id
-          stockInfo.operating_cash_flow, // operating_cash_flow
-          stockInfo.dividends_paid ? stockInfo.dividends_paid : 0, // dividends_paid
-          stockInfo.debt_issued ? stockInfo.debt_issued : 0, // debt_issued
-          stockInfo.debt_repaid ? stockInfo.debt_repaid : 0, // debt_repaid
-          stockInfo.stocks_compensations ? stockInfo.stocks_compensations : 0, // stocks_compensations
-          stockInfo.repurchased_shares ? stockInfo.repurchased_shares : 0, // repurchased_shares
-          stockInfo.depreciation_and_amortization, // depreciation_and_amortization
-          FFO || 0,
-          'ttm',
-          stockInfo.sale_of_assets || 0
-        ])
-
+            companyId, // company_id
+            stockInfo.operating_cash_flow, // operating_cash_flow
+            stockInfo.dividends_paid ? stockInfo.dividends_paid : 0, // dividends_paid
+            stockInfo.debt_issued ? stockInfo.debt_issued : 0, // debt_issued
+            stockInfo.debt_repaid ? stockInfo.debt_repaid : 0, // debt_repaid
+            stockInfo.stocks_compensations ? stockInfo.stocks_compensations : 0, // stocks_compensations
+            stockInfo.repurchased_shares ? stockInfo.repurchased_shares : 0, // repurchased_shares
+            stockInfo.depreciation_and_amortization, // depreciation_and_amortization
+            FFO || 0,
+            "ttm",
+            stockInfo.sale_of_assets || 0,
+          ])
         : await client.query(updateCashFlowStatementReitSql, [
-          companyId, // company_id
-          stockInfo.year, // fiscal_year
-          stockInfo.operating_cash_flow, // operating_cash_flow
-          stockInfo.dividends_paid ? stockInfo.dividends_paid : 0, // dividends_paid
-          stockInfo.debt_issued ? stockInfo.debt_issued : 0, // debt_issued
-          stockInfo.debt_repaid ? stockInfo.debt_repaid : 0, // debt_repaid
-          stockInfo.stocks_compensations ? stockInfo.stocks_compensations : 0, // stocks_compensations
-          stockInfo.repurchased_shares ? stockInfo.repurchased_shares : 0, // repurchased_shares
-          stockInfo.depreciation_and_amortization, // depreciation_and_amortization
-          FFO || 0, // free_cash_flow
-          'annual',
-          stockInfo.sale_of_assets || 0
-
-        ])
-    })
+            companyId, // company_id
+            stockInfo.year, // fiscal_year
+            stockInfo.operating_cash_flow, // operating_cash_flow
+            stockInfo.dividends_paid ? stockInfo.dividends_paid : 0, // dividends_paid
+            stockInfo.debt_issued ? stockInfo.debt_issued : 0, // debt_issued
+            stockInfo.debt_repaid ? stockInfo.debt_repaid : 0, // debt_repaid
+            stockInfo.stocks_compensations ? stockInfo.stocks_compensations : 0, // stocks_compensations
+            stockInfo.repurchased_shares ? stockInfo.repurchased_shares : 0, // repurchased_shares
+            stockInfo.depreciation_and_amortization, // depreciation_and_amortization
+            FFO || 0, // free_cash_flow
+            "annual",
+            stockInfo.sale_of_assets || 0,
+          ]);
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
 
 const updateStock = (newStockDescription, companyId) => {
-  return query('UPDATE company_info SET price = $1, country = $2, sector = $3, industry = $4, currency = $5 WHERE company_id = $6', [
-    newStockDescription.price,
-    newStockDescription.country,
-    newStockDescription.sector,
-    newStockDescription.industry,
-    newStockDescription.currency,
-    companyId
-  ])
-}
+  return query(
+    "UPDATE company_info SET price = $1, country = $2, sector = $3, industry = $4, currency = $5 WHERE company_id = $6",
+    [
+      newStockDescription.price,
+      newStockDescription.country,
+      newStockDescription.sector,
+      newStockDescription.industry,
+      newStockDescription.currency,
+      companyId,
+    ]
+  );
+};
 
 const updateMetrics = async (arrayOfHistoricData, companyId, client) => {
   if (!arrayOfHistoricData || arrayOfHistoricData.length === 0) {
-    throw new DatabaseError('Historic data is required')
+    throw new DatabaseError("Historic data is required");
   }
 
   try {
     const changeInNetWorkingCapital = arrayOfHistoricData.map((stock, i) =>
       calculateChangeInWorkingCapital(i, arrayOfHistoricData)
-    )
+    );
 
     const arrayOfHistoricFcf = arrayOfHistoricData.map((stock, i) =>
       calculateFFCFE(arrayOfHistoricData[i], changeInNetWorkingCapital[i])
-    )
+    );
 
     const metricsData = getUpdatedMetricData(
       arrayOfHistoricData,
       changeInNetWorkingCapital,
       arrayOfHistoricFcf
-    )
+    );
 
-    const score = calculateScore(metricsData.scoreMetrics)
+    const score = calculateScore(metricsData.scoreMetrics);
 
     const sanitizeNumber = (value, defaultValue = 0) => {
-      return isNaN(value) || !isFinite(value) ? defaultValue : Number(value)
-    }
+      return isNaN(value) || !isFinite(value) ? defaultValue : Number(value);
+    };
 
     const params = [
       companyId,
@@ -502,34 +551,39 @@ const updateMetrics = async (arrayOfHistoricData, companyId, client) => {
       sanitizeNumber(metricsData.tenYearsDividendGrowth),
       sanitizeNumber(metricsData.consecutiveYearsPayingDividends),
       sanitizeNumber(metricsData.freeCashFlowMargin),
-      sanitizeNumber(metricsData.ebitdaMargin)
-    ]
+      sanitizeNumber(metricsData.ebitdaMargin),
+    ];
 
-    const result = await client.query(updateMetricsSql, params)
+    const result = await client.query(updateMetricsSql, params);
 
-    return result
+    return result;
   } catch (error) {
-    console.error('Error updating metrics:', {
+    console.error("Error updating metrics:", {
       message: error.message,
       companyId,
       dataPoints: arrayOfHistoricData?.length,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to update metrics', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to update metrics", error);
   }
-}
+};
 
 const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
   if (!stockHistoricData || stockHistoricData.length === 0) {
-    throw new DatabaseError('Stock historic data is required')
+    throw new DatabaseError("Stock historic data is required");
   }
 
   const values = stockHistoricData.map((stockInfo, index) => {
-    const isTTM = index === stockHistoricData.length - 1 && stockHistoricData.length > 1
-    const periodType = isTTM ? 'ttm' : 'annual'
-    const fiscalYear = isTTM ? null : stockInfo.year
+    const isTTM =
+      index === stockHistoricData.length - 1 && stockHistoricData.length > 1;
+    const periodType = isTTM ? "ttm" : "annual";
+    const fiscalYear = isTTM ? null : stockInfo.year;
 
-    const historicMetricData = preparationForHistoricMetrics(stockInfo, stockHistoricData, index)
+    const historicMetricData = preparationForHistoricMetrics(
+      stockInfo,
+      stockHistoricData,
+      index
+    );
     const {
       ROE,
       ROCE,
@@ -554,14 +608,13 @@ const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
       daysInventoryOutstanding,
       daysSalesOutstanding,
       daysPayableOutstanding,
-      cashConversionCycle
-
-    } = historicMetricData
+      cashConversionCycle,
+    } = historicMetricData;
 
     const sanitize = (value) => {
-      const num = Number(value)
-      return isNaN(num) || !isFinite(num) ? null : num
-    }
+      const num = Number(value);
+      return isNaN(num) || !isFinite(num) ? null : num;
+    };
 
     return [
       companyId,
@@ -590,20 +643,22 @@ const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
       sanitize(daysInventoryOutstanding),
       sanitize(daysSalesOutstanding),
       sanitize(daysPayableOutstanding),
-      sanitize(cashConversionCycle)
-    ]
-  })
+      sanitize(cashConversionCycle),
+    ];
+  });
 
-  const columnsPerRow = 27
-  const placeholders = values.map((_, rowIndex) => {
-    const rowPlaceholders = Array.from(
-      { length: columnsPerRow },
-      (_, colIndex) => `$${rowIndex * columnsPerRow + colIndex + 1}`
-    )
-    return `(${rowPlaceholders.join(',')})`
-  }).join(',')
+  const columnsPerRow = 27;
+  const placeholders = values
+    .map((_, rowIndex) => {
+      const rowPlaceholders = Array.from(
+        { length: columnsPerRow },
+        (_, colIndex) => `$${rowIndex * columnsPerRow + colIndex + 1}`
+      );
+      return `(${rowPlaceholders.join(",")})`;
+    })
+    .join(",");
 
-  const flatValues = values.flat()
+  const flatValues = values.flat();
 
   const sql = `
     INSERT INTO historic_metrics (
@@ -663,93 +718,103 @@ const updateHistoricMetrics = async (stockHistoricData, companyId, client) => {
       days_sales_outstanding = EXCLUDED.days_sales_outstanding,
       days_payable_outstanding = EXCLUDED.days_payable_outstanding,
       cash_conversion_cycle = EXCLUDED.cash_conversion_cycle
-  `
+  `;
 
   try {
-    const result = await client.query(sql, flatValues)
-    return result
+    const result = await client.query(sql, flatValues);
+    return result;
   } catch (error) {
-    console.error('Error upserting historic metrics:', {
+    console.error("Error upserting historic metrics:", {
       message: error.message,
       companyId,
       rowCount: stockHistoricData.length,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to upsert historic metrics', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to upsert historic metrics", error);
   }
-}
+};
 
 const createMetrics = async (arrayOfHistoricData, companyId, client) => {
   try {
-    const changeInNetWorkingCapital = arrayOfHistoricData.map((stock, i) => calculateChangeInWorkingCapital(i, arrayOfHistoricData))
-    const arrayOfHistoricFcf = arrayOfHistoricData.map((stock, i) => calculateFFCFE(arrayOfHistoricData[i], changeInNetWorkingCapital[i]))
+    const changeInNetWorkingCapital = arrayOfHistoricData.map((stock, i) =>
+      calculateChangeInWorkingCapital(i, arrayOfHistoricData)
+    );
+    const arrayOfHistoricFcf = arrayOfHistoricData.map((stock, i) =>
+      calculateFFCFE(arrayOfHistoricData[i], changeInNetWorkingCapital[i])
+    );
 
-    const metricsData = getUpdatedMetricData(arrayOfHistoricData, changeInNetWorkingCapital, arrayOfHistoricFcf)
+    const metricsData = getUpdatedMetricData(
+      arrayOfHistoricData,
+      changeInNetWorkingCapital,
+      arrayOfHistoricFcf
+    );
 
-    const score = calculateScore(metricsData.scoreMetrics)
-    return client.query(createMetricsSql,
-      [
-        companyId,
-        metricsData.debtToEquity,
-        metricsData.debtToEbitda,
-        metricsData.currentRatio,
-        metricsData.returnOnEquity,
-        metricsData.ttmRoic,
-        metricsData.grossMargin,
-        metricsData.operatingMargin,
-        metricsData.netMargin,
-        metricsData.netCashPerShare,
-        metricsData.cashConversion,
-        metricsData.fiveYearsAverageRoic,
-        metricsData.fiveYearsAverageGm,
-        metricsData.fiveYearsAverageOm,
-        metricsData.fiveYearsAverageFcfM,
-        metricsData.shareDilution,
-        metricsData.tenYearsRevenueGrowth,
-        metricsData.tenYearsEquityGrowth,
-        metricsData.tenYearsFcfGrowth,
-        metricsData.tenYearsEpsGrowth,
-        metricsData.fiveYearsAverageReinvestment,
-        score,
-        metricsData.consecutiveYearsIncreasingDividends,
-        metricsData.consecutiveYearsPayingDividends,
-        metricsData.fiveYearsDividendGrowth,
-        metricsData.tenYearsDividendGrowth,
-        metricsData.freeCashFlowMargin,
-        metricsData.ebitdaMargin
-      ]
-    )
+    const score = calculateScore(metricsData.scoreMetrics);
+    return client.query(createMetricsSql, [
+      companyId,
+      metricsData.debtToEquity,
+      metricsData.debtToEbitda,
+      metricsData.currentRatio,
+      metricsData.returnOnEquity,
+      metricsData.ttmRoic,
+      metricsData.grossMargin,
+      metricsData.operatingMargin,
+      metricsData.netMargin,
+      metricsData.netCashPerShare,
+      metricsData.cashConversion,
+      metricsData.fiveYearsAverageRoic,
+      metricsData.fiveYearsAverageGm,
+      metricsData.fiveYearsAverageOm,
+      metricsData.fiveYearsAverageFcfM,
+      metricsData.shareDilution,
+      metricsData.tenYearsRevenueGrowth,
+      metricsData.tenYearsEquityGrowth,
+      metricsData.tenYearsFcfGrowth,
+      metricsData.tenYearsEpsGrowth,
+      metricsData.fiveYearsAverageReinvestment,
+      score,
+      metricsData.consecutiveYearsIncreasingDividends,
+      metricsData.consecutiveYearsPayingDividends,
+      metricsData.fiveYearsDividendGrowth,
+      metricsData.tenYearsDividendGrowth,
+      metricsData.freeCashFlowMargin,
+      metricsData.ebitdaMargin,
+    ]);
   } catch (error) {
-    console.log(error)
-    throw new DatabaseError('Something went wrong')
+    console.log(error);
+    throw new DatabaseError("Something went wrong");
   }
-}
+};
 const createCompanyInfo = async (stockDescription, client) => {
   try {
-    return await client.query('INSERT INTO company_info (ticker, price) VALUES ($1,$2) RETURNING company_id ', [
-      stockDescription.ticker,
-      stockDescription.price
-    ])
+    return await client.query(
+      "INSERT INTO company_info (ticker, price) VALUES ($1,$2) RETURNING company_id ",
+      [stockDescription.ticker, stockDescription.price]
+    );
   } catch (error) {
-    console.log(error)
-    throw new DatabaseError('Something went wrong')
+    console.log(error);
+    throw new DatabaseError("Something went wrong");
   }
-}
+};
 
 const createIncomeStatemente = async (stockHistoricData, companyId, client) => {
   if (!stockHistoricData || stockHistoricData.length === 0) {
-    throw new DatabaseError('Stock historic data is required')
+    throw new DatabaseError("Stock historic data is required");
   }
 
   const values = stockHistoricData.map((stockInfo, index) => {
-    const operatingIncome = Number(stockInfo?.operating_income) || 0
+    const operatingIncome = Number(stockInfo?.operating_income) || 0;
 
-    const taxRate = calculateTaxRate(stockInfo.income_tax_expense, stockInfo.income_before_taxes)
-    const NOPAT = operatingIncome * (1 + (Number(taxRate) / 100))
+    const taxRate = calculateTaxRate(
+      stockInfo.income_tax_expense,
+      stockInfo.income_before_taxes
+    );
+    const NOPAT = operatingIncome * (1 + Number(taxRate) / 100);
 
-    const isTTM = index === stockHistoricData.length - 1 && stockHistoricData.length > 1
-    const periodType = isTTM ? 'ttm' : 'annual'
-    const fiscalYear = isTTM ? null : stockInfo.year
+    const isTTM =
+      index === stockHistoricData.length - 1 && stockHistoricData.length > 1;
+    const periodType = isTTM ? "ttm" : "annual";
+    const fiscalYear = isTTM ? null : stockInfo.year;
 
     return [
       companyId,
@@ -767,20 +832,22 @@ const createIncomeStatemente = async (stockHistoricData, companyId, client) => {
       periodType,
       NOPAT,
       Number(stockInfo.interest_income) || 0,
-      Number(taxRate) || 0
-    ]
-  })
+      Number(taxRate) || 0,
+    ];
+  });
 
-  const columnsPerRow = 16
-  const placeholders = values.map((_, rowIndex) => {
-    const rowPlaceholders = Array.from(
-      { length: columnsPerRow },
-      (_, colIndex) => `$${rowIndex * columnsPerRow + colIndex + 1}`
-    )
-    return `(${rowPlaceholders.join(',')})`
-  }).join(',')
+  const columnsPerRow = 16;
+  const placeholders = values
+    .map((_, rowIndex) => {
+      const rowPlaceholders = Array.from(
+        { length: columnsPerRow },
+        (_, colIndex) => `$${rowIndex * columnsPerRow + colIndex + 1}`
+      );
+      return `(${rowPlaceholders.join(",")})`;
+    })
+    .join(",");
 
-  const flatValues = values.flat()
+  const flatValues = values.flat();
 
   const sql = `
     INSERT INTO income_statements (
@@ -801,37 +868,50 @@ const createIncomeStatemente = async (stockHistoricData, companyId, client) => {
       interest_income,
       tax_rate
     ) VALUES ${placeholders}
-  `
+  `;
 
   try {
-    const result = await client.query(sql, flatValues)
-    return result
+    const result = await client.query(sql, flatValues);
+    return result;
   } catch (error) {
-    console.error('Error inserting income statements:', {
+    console.error("Error inserting income statements:", {
       message: error.message,
       companyId,
       rowCount: stockHistoricData.length,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to create income statements', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to create income statements", error);
   }
-}
+};
 
 const createBalanceSheet = async (stockHistoricData, companyId, client) => {
   if (!stockHistoricData || stockHistoricData.length === 0) {
-    throw new DatabaseError('Stock historic data is required')
+    throw new DatabaseError("Stock historic data is required");
   }
 
   const values = stockHistoricData.map((stockInfo, index) => {
-    const longTermCapitalLeases = Number(stockInfo.long_term_capital_leases) || 0
-    const shortTermCapitalLeases = Number(stockInfo.short_term_capital_leases) || 0
-    const totalDebt = Number(stockInfo.total_debt) || 0
-    const financialDebt = (totalDebt - longTermCapitalLeases - shortTermCapitalLeases).toFixed(2)
-    const costOfDebt = calculateCostOfDebt(stockInfo.interest_expense, financialDebt)
-    const isTTM = index === stockHistoricData.length - 1 && stockHistoricData.length > 1
-    const periodType = isTTM ? 'ttm' : 'annual'
-    const fiscalYear = isTTM ? null : stockInfo.year
-    const totalUnearnedRevenues = calculateTotalUnearnedRevenues(stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current)
+    const longTermCapitalLeases =
+      Number(stockInfo.long_term_capital_leases) || 0;
+    const shortTermCapitalLeases =
+      Number(stockInfo.short_term_capital_leases) || 0;
+    const totalDebt = Number(stockInfo.total_debt) || 0;
+    const financialDebt = (
+      totalDebt -
+      longTermCapitalLeases -
+      shortTermCapitalLeases
+    ).toFixed(2);
+    const costOfDebt = calculateCostOfDebt(
+      stockInfo.interest_expense,
+      financialDebt
+    );
+    const isTTM =
+      index === stockHistoricData.length - 1 && stockHistoricData.length > 1;
+    const periodType = isTTM ? "ttm" : "annual";
+    const fiscalYear = isTTM ? null : stockInfo.year;
+    const totalUnearnedRevenues = calculateTotalUnearnedRevenues(
+      stockInfo.unearned_revenues,
+      stockInfo.unearned_revenues_non_current
+    );
 
     return [
       companyId,
@@ -844,8 +924,12 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
       stockInfo.short_term_debt ? Number(stockInfo.short_term_debt) : null,
       stockInfo.long_term_debt ? Number(stockInfo.long_term_debt) : null,
       Number(stockInfo.total_debt) || 0,
-      stockInfo.long_term_capital_leases ? Number(stockInfo.long_term_capital_leases) : null,
-      stockInfo.short_term_capital_leases ? Number(stockInfo.short_term_capital_leases) : null,
+      stockInfo.long_term_capital_leases
+        ? Number(stockInfo.long_term_capital_leases)
+        : null,
+      stockInfo.short_term_capital_leases
+        ? Number(stockInfo.short_term_capital_leases)
+        : null,
       Number(stockInfo.unearned_revenues) || 0,
       Number(stockInfo.unearned_revenues_non_current) || 0,
       Number(stockInfo.accounts_receivable) || 0,
@@ -858,21 +942,23 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
       costOfDebt,
       totalUnearnedRevenues,
       Number(stockInfo.prepaid_expenses) || 0,
-      Number(stockInfo.accrued_expenses) || 0
-    ]
-  })
+      Number(stockInfo.accrued_expenses) || 0,
+    ];
+  });
 
-  const columnsPerRow = values[0].length
+  const columnsPerRow = values[0].length;
 
-  const placeholders = values.map((_, rowIndex) => {
-    const rowPlaceholders = Array.from(
-      { length: columnsPerRow },
-      (_, colIndex) => `$${rowIndex * columnsPerRow + colIndex + 1}`
-    )
-    return `(${rowPlaceholders.join(',')})`
-  }).join(',')
+  const placeholders = values
+    .map((_, rowIndex) => {
+      const rowPlaceholders = Array.from(
+        { length: columnsPerRow },
+        (_, colIndex) => `$${rowIndex * columnsPerRow + colIndex + 1}`
+      );
+      return `(${rowPlaceholders.join(",")})`;
+    })
+    .join(",");
 
-  const flatValues = values.flat()
+  const flatValues = values.flat();
 
   const sql = `
     INSERT INTO balance_sheets (
@@ -902,34 +988,39 @@ const createBalanceSheet = async (stockHistoricData, companyId, client) => {
       prepaid_expenses,
       accrued_expenses
     ) VALUES ${placeholders}
-  `
+  `;
 
   try {
-    const result = await client.query(sql, flatValues)
-    return result
+    const result = await client.query(sql, flatValues);
+    return result;
   } catch (error) {
-    console.error('Error inserting balance sheets:', {
+    console.error("Error inserting balance sheets:", {
       message: error.message,
       companyId,
       rowCount: stockHistoricData.length,
       columnsPerRow,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to create balance sheets', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to create balance sheets", error);
   }
-}
+};
 
 const createHistoricMetrics = async (stockHistoricData, companyId, client) => {
   if (!stockHistoricData || stockHistoricData.length === 0) {
-    throw new DatabaseError('Stock historic data is required')
+    throw new DatabaseError("Stock historic data is required");
   }
 
   const values = stockHistoricData.map((stockInfo, index) => {
-    const isTTM = index === stockHistoricData.length - 1 && stockHistoricData.length > 1
-    const periodType = isTTM ? 'ttm' : 'annual'
-    const fiscalYear = isTTM ? null : stockInfo.year
+    const isTTM =
+      index === stockHistoricData.length - 1 && stockHistoricData.length > 1;
+    const periodType = isTTM ? "ttm" : "annual";
+    const fiscalYear = isTTM ? null : stockInfo.year;
 
-    const historicMetricData = preparationForHistoricMetrics(stockInfo, stockHistoricData, index)
+    const historicMetricData = preparationForHistoricMetrics(
+      stockInfo,
+      stockHistoricData,
+      index
+    );
     const {
       ROE,
       ROCE,
@@ -954,13 +1045,13 @@ const createHistoricMetrics = async (stockHistoricData, companyId, client) => {
       daysInventoryOutstanding,
       daysSalesOutstanding,
       daysPayableOutstanding,
-      cashConversionCycle
-    } = historicMetricData
+      cashConversionCycle,
+    } = historicMetricData;
 
     const sanitize = (value) => {
-      const num = Number(value)
-      return isNaN(num) || !isFinite(num) ? null : num
-    }
+      const num = Number(value);
+      return isNaN(num) || !isFinite(num) ? null : num;
+    };
 
     return [
       companyId,
@@ -989,20 +1080,22 @@ const createHistoricMetrics = async (stockHistoricData, companyId, client) => {
       sanitize(daysInventoryOutstanding),
       sanitize(daysSalesOutstanding),
       sanitize(daysPayableOutstanding),
-      sanitize(cashConversionCycle)
-    ]
-  })
+      sanitize(cashConversionCycle),
+    ];
+  });
 
-  const columnsPerRow = 27
-  const placeholders = values.map((_, rowIndex) => {
-    const rowPlaceholders = Array.from(
-      { length: columnsPerRow },
-      (_, colIndex) => `$${rowIndex * columnsPerRow + colIndex + 1}`
-    )
-    return `(${rowPlaceholders.join(',')})`
-  }).join(',')
+  const columnsPerRow = 27;
+  const placeholders = values
+    .map((_, rowIndex) => {
+      const rowPlaceholders = Array.from(
+        { length: columnsPerRow },
+        (_, colIndex) => `$${rowIndex * columnsPerRow + colIndex + 1}`
+      );
+      return `(${rowPlaceholders.join(",")})`;
+    })
+    .join(",");
 
-  const flatValues = values.flat()
+  const flatValues = values.flat();
 
   const sql = `
     INSERT INTO historic_metrics (
@@ -1035,61 +1128,92 @@ const createHistoricMetrics = async (stockHistoricData, companyId, client) => {
       cash_conversion_cycle
    
     ) VALUES ${placeholders}
-  `
+  `;
 
   try {
-    const result = await client.query(sql, flatValues)
-    return result
+    const result = await client.query(sql, flatValues);
+    return result;
   } catch (error) {
-    console.error('Error inserting historic metrics:', {
+    console.error("Error inserting historic metrics:", {
       message: error.message,
       companyId,
       rowCount: stockHistoricData.length,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to create historic metrics', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to create historic metrics", error);
   }
-}
+};
 
-const createCashFlowStatement = async (stockHistoricData, companyId, client, lastYearWorkingCapital) => {
+const createCashFlowStatement = async (
+  stockHistoricData,
+  companyId,
+  client,
+  lastYearWorkingCapital
+) => {
   if (!stockHistoricData || stockHistoricData.length === 0) {
-    throw new DatabaseError('Stock historic data is required')
+    throw new DatabaseError("Stock historic data is required");
   }
 
   const values = stockHistoricData.map((stockInfo, index) => {
-    const isTTM = index === stockHistoricData.length - 1 && stockHistoricData.length > 1
-    const periodType = isTTM ? 'ttm' : 'annual'
-    const fiscalYear = isTTM ? null : stockInfo.year
+    const isTTM =
+      index === stockHistoricData.length - 1 && stockHistoricData.length > 1;
+    const periodType = isTTM ? "ttm" : "annual";
+    const fiscalYear = isTTM ? null : stockInfo.year;
 
-    let changeInNetWorkingCapital
-    if (isTTM && stockHistoricData[index].operating_cash_flow === stockHistoricData[index - 1].operating_cash_flow) {
-      changeInNetWorkingCapital = calculateChangeInWorkingCapital(index - 1, stockHistoricData, lastYearWorkingCapital)
+    let changeInNetWorkingCapital;
+    if (
+      isTTM &&
+      stockHistoricData[index].operating_cash_flow ===
+        stockHistoricData[index - 1].operating_cash_flow
+    ) {
+      changeInNetWorkingCapital = calculateChangeInWorkingCapital(
+        index - 1,
+        stockHistoricData,
+        lastYearWorkingCapital
+      );
     } else {
-      changeInNetWorkingCapital = calculateChangeInWorkingCapital(index, stockHistoricData, lastYearWorkingCapital)
+      changeInNetWorkingCapital = calculateChangeInWorkingCapital(
+        index,
+        stockHistoricData,
+        lastYearWorkingCapital
+      );
     }
 
-    const FCFE = calculateFFCFE(stockInfo, changeInNetWorkingCapital)
+    const FCFE = calculateFFCFE(stockInfo, changeInNetWorkingCapital);
 
-    const FCFF = calculateFCFF(stockInfo, changeInNetWorkingCapital)
+    const FCFF = calculateFCFF(stockInfo, changeInNetWorkingCapital);
 
     const addYearFcf = calculateFFCFE(
       stockHistoricData,
-      calculateChangeInWorkingCapital(index, stockHistoricData, lastYearWorkingCapital)
-    )
+      calculateChangeInWorkingCapital(
+        index,
+        stockHistoricData,
+        lastYearWorkingCapital
+      )
+    );
 
-    const debtIssued = Number(stockInfo.debt_issued) || 0
-    const debtRepaid = Number(stockInfo.debt_repaid) || 0
-    const netDebtIssued = Number((debtIssued + debtRepaid).toFixed(2))
+    const debtIssued = Number(stockInfo.debt_issued) || 0;
+    const debtRepaid = Number(stockInfo.debt_repaid) || 0;
+    const netDebtIssued = Number((debtIssued + debtRepaid).toFixed(2));
 
-    const repurchasedShares = Number(stockInfo.repurchased_shares) || 0
-    const issuedShares = Number(stockInfo.issued_shares) || 0
+    const repurchasedShares = Number(stockInfo.repurchased_shares) || 0;
+    const issuedShares = Number(stockInfo.issued_shares) || 0;
 
-    const netRepurchasedShares = repurchasedShares + issuedShares
+    const netRepurchasedShares = repurchasedShares + issuedShares;
 
-    const reinvestmentRate = getReinvestMentRate(index, stockHistoricData, addYearFcf)
-    const safeReinvestmentRate = isFinite(reinvestmentRate) ? reinvestmentRate : 0
+    const reinvestmentRate = getReinvestMentRate(
+      index,
+      stockHistoricData,
+      addYearFcf
+    );
+    const safeReinvestmentRate = isFinite(reinvestmentRate)
+      ? reinvestmentRate
+      : 0;
 
-    const totalUnearnedRevenues = calculateTotalUnearnedRevenues(stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current)
+    const totalUnearnedRevenues = calculateTotalUnearnedRevenues(
+      stockInfo.unearned_revenues,
+      stockInfo.unearned_revenues_non_current
+    );
 
     const workingCapital = calculateWorkingCapital(
       stockInfo.accounts_receivable,
@@ -1098,8 +1222,10 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       stockInfo.accounts_payable,
       stockInfo.accrued_expenses,
       totalUnearnedRevenues
-    )
-    const simpleFcf = Number(stockInfo.operating_cash_flow) + Number(stockInfo.capital_expenditures)
+    );
+    const simpleFcf =
+      Number(stockInfo.operating_cash_flow) +
+      Number(stockInfo.capital_expenditures);
 
     return [
       companyId,
@@ -1123,21 +1249,23 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       netDebtIssued,
       netRepurchasedShares,
       issuedShares,
-      FCFF
-    ]
-  })
+      FCFF,
+    ];
+  });
 
-  const columnsPerRow = values[0].length
+  const columnsPerRow = values[0].length;
 
-  const placeholders = values.map((_, rowIndex) => {
-    const rowPlaceholders = Array.from(
-      { length: columnsPerRow },
-      (_, colIndex) => `$${rowIndex * columnsPerRow + colIndex + 1}`
-    )
-    return `(${rowPlaceholders.join(',')})`
-  }).join(',')
+  const placeholders = values
+    .map((_, rowIndex) => {
+      const rowPlaceholders = Array.from(
+        { length: columnsPerRow },
+        (_, colIndex) => `$${rowIndex * columnsPerRow + colIndex + 1}`
+      );
+      return `(${rowPlaceholders.join(",")})`;
+    })
+    .join(",");
 
-  const flatValues = values.flat()
+  const flatValues = values.flat();
 
   const sql = `
     INSERT INTO cash_flow_statements (
@@ -1165,30 +1293,50 @@ const createCashFlowStatement = async (stockHistoricData, companyId, client, las
       free_cash_flow_to_firm
       
     ) VALUES ${placeholders}
-  `
+  `;
 
   try {
-    const result = await client.query(sql, flatValues)
-    return result
+    const result = await client.query(sql, flatValues);
+    return result;
   } catch (error) {
-    console.error('Error inserting cash flow statements:', {
+    console.error("Error inserting cash flow statements:", {
       message: error.message,
       companyId,
       rowCount: stockHistoricData.length,
       columnsPerRow,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to create cash flow statements', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to create cash flow statements", error);
   }
-}
+};
 
-const createCashFlowStatementReit = async (stockHistoricData, companyId, client, lastYearWorkingCapital) => {
+const createCashFlowStatementReit = async (
+  stockHistoricData,
+  companyId,
+  client,
+  lastYearWorkingCapital
+) => {
   try {
     return stockHistoricData.map((stockInfo, i) => {
-      const FFO = (Number(stockInfo.net_income) + Number(stockInfo.depreciation_and_amortization) - Number(stockInfo.sale_of_assets)).toFixed(2)
-      const addYearFcf = calculateFFCFE(stockHistoricData, calculateChangeInWorkingCapital(i, stockHistoricData, lastYearWorkingCapital))
-      const totalUnearnedRevenues = calculateTotalUnearnedRevenues(stockInfo.unearned_revenues, stockInfo.unearned_revenues_non_current)
-      client.query(createCashFlowStatemenReitSql,
+      const FFO = (
+        Number(stockInfo.net_income) +
+        Number(stockInfo.depreciation_and_amortization) -
+        Number(stockInfo.sale_of_assets)
+      ).toFixed(2);
+      const addYearFcf = calculateFFCFE(
+        stockHistoricData,
+        calculateChangeInWorkingCapital(
+          i,
+          stockHistoricData,
+          lastYearWorkingCapital
+        )
+      );
+      const totalUnearnedRevenues = calculateTotalUnearnedRevenues(
+        stockInfo.unearned_revenues,
+        stockInfo.unearned_revenues_non_current
+      );
+      client.query(
+        createCashFlowStatemenReitSql,
 
         stockHistoricData.length > 1
           ? [
@@ -1200,15 +1348,26 @@ const createCashFlowStatementReit = async (stockHistoricData, companyId, client,
               stockInfo.debt_issued ? stockInfo.debt_issued : 0, // debt_issued
               stockInfo.debt_repaid ? stockInfo.debt_repaid : 0, // debt_repaid
               stockInfo.cash_acquisitions ? stockInfo.cash_acquisitions : 0, // cash_acquisitions
-              stockInfo.stocks_compensations ? stockInfo.stocks_compensations : 0, // stocks_compensations
+              stockInfo.stocks_compensations
+                ? stockInfo.stocks_compensations
+                : 0, // stocks_compensations
               stockInfo.repurchased_shares ? stockInfo.repurchased_shares : 0, // repurchased_shares
               null, // change_in_working_capital
-              isFinite(getReinvestMentRate(i, stockHistoricData, addYearFcf)) ? getReinvestMentRate(i, stockHistoricData, addYearFcf) : 0, // reinvestment_rate
-              calculateWorkingCapital(stockInfo.accounts_receivable, stockInfo.inventories, stockInfo.prepaid_expenses, stockInfo.accounts_payable, stockInfo.accrued_expenses, totalUnearnedRevenues), // working_capital
+              isFinite(getReinvestMentRate(i, stockHistoricData, addYearFcf))
+                ? getReinvestMentRate(i, stockHistoricData, addYearFcf)
+                : 0, // reinvestment_rate
+              calculateWorkingCapital(
+                stockInfo.accounts_receivable,
+                stockInfo.inventories,
+                stockInfo.prepaid_expenses,
+                stockInfo.accounts_payable,
+                stockInfo.accrued_expenses,
+                totalUnearnedRevenues
+              ), // working_capital
               stockInfo.depreciation_and_amortization, // depreciation_and_amortization
               FFO,
-              i === 10 ? 'ttm' : 'annual',
-              stockInfo.sale_of_assets || 0
+              i === 10 ? "ttm" : "annual",
+              stockInfo.sale_of_assets || 0,
             ]
           : [
               companyId, // company_id
@@ -1219,38 +1378,50 @@ const createCashFlowStatementReit = async (stockHistoricData, companyId, client,
               stockInfo.debt_issued ? stockInfo.debt_issued : 0, // debt_issued
               stockInfo.debt_repaid ? stockInfo.debt_repaid : 0, // debt_repaid
               stockInfo.cash_acquisitions ? stockInfo.cash_acquisitions : 0, // cash_acquisitions
-              stockInfo.stocks_compensations ? stockInfo.stocks_compensations : 0, // stocks_compensations
+              stockInfo.stocks_compensations
+                ? stockInfo.stocks_compensations
+                : 0, // stocks_compensations
               stockInfo.repurchased_shares ? stockInfo.repurchased_shares : 0, // repurchased_shares
-              calculateChangeInWorkingCapital(i, stockHistoricData, lastYearWorkingCapital), // change_in_working_capital
-              isFinite(getReinvestMentRate(i, stockHistoricData, addYearFcf)) ? getReinvestMentRate(i, stockHistoricData, addYearFcf) : 0, // reinvestment_rate
+              calculateChangeInWorkingCapital(
+                i,
+                stockHistoricData,
+                lastYearWorkingCapital
+              ), // change_in_working_capital
+              isFinite(getReinvestMentRate(i, stockHistoricData, addYearFcf))
+                ? getReinvestMentRate(i, stockHistoricData, addYearFcf)
+                : 0, // reinvestment_rate
               null, // working_capital
               stockInfo.depreciation_and_amortization, // depreciation_and_amortization
               FFO, // free_cash_flow
-              'annual', // period_type,
-              stockInfo.sale_of_assets || 0
+              "annual", // period_type,
+              stockInfo.sale_of_assets || 0,
             ]
-
-      )
-    })
+      );
+    });
   } catch (error) {
-    console.log(error)
-    throw new DatabaseError('Something went wrong')
+    console.log(error);
+    throw new DatabaseError("Something went wrong");
   }
-}
+};
 
 const createThesis = async (companyId, text) => {
   try {
-    query(`
+    query(
+      `
       UPDATE company_info
       SET thesis = $1
       WHERE company_id = $2
-      `, [text, companyId])
+      `,
+      [text, companyId]
+    );
   } catch (error) {
-    console.error('Error updating thesis:', error)
+    console.error("Error updating thesis:", error);
   }
-}
+};
 
-const getThesis = async (companyId) => query(`
+const getThesis = async (companyId) =>
+  query(
+    `
   
 SELECT
     ci.ticker,
@@ -1262,31 +1433,75 @@ WHERE
     ci.company_id = $1;
  
   
-  `, [companyId])
+  `,
+    [companyId]
+  );
 
-const updateBuyPriceUser = async (futureDcfPrice, futurePrice, companyId, userId) => query('UPDATE user_company_radar SET user_estimated_price_in_five_years = $1, user_dcf_estimated_price = $2 WHERE company_id = $3 AND user_id = $4', [futurePrice, futureDcfPrice, companyId, userId])
-const updateBuyPriceDefault = async (futureDcfPrice, futurePrice, companyId) => query('UPDATE company_info SET default_estimated_price_in_five_years = $1, default_dcf_estimated_price = $2 WHERE company_id = $3 ', [futurePrice, futureDcfPrice, companyId])
-const updateForwardEps = async (forwardEps, companyId) => query('UPDATE company_metrics SET forward_earnings_per_share = $1 WHERE company_id = $2', [forwardEps, companyId])
+const updateBuyPriceUser = async (
+  futureDcfPrice,
+  futurePrice,
+  companyId,
+  userId
+) =>
+  query(
+    "UPDATE user_company_radar SET user_estimated_price_in_five_years = $1, user_dcf_estimated_price = $2 WHERE company_id = $3 AND user_id = $4",
+    [futurePrice, futureDcfPrice, companyId, userId]
+  );
+const updateBuyPriceDefault = async (futureDcfPrice, futurePrice, companyId) =>
+  query(
+    "UPDATE company_info SET default_estimated_price_in_five_years = $1, default_dcf_estimated_price = $2 WHERE company_id = $3 ",
+    [futurePrice, futureDcfPrice, companyId]
+  );
+const updateForwardEps = async (forwardEps, companyId) =>
+  query(
+    "UPDATE company_metrics SET forward_earnings_per_share = $1 WHERE company_id = $2",
+    [forwardEps, companyId]
+  );
 
-const addStockToPortfolio = async (companyId, userId) => await query('INSERT INTO user_company_radar (user_id, company_id) VALUES ($1, $2) ', [userId, companyId])
+const addStockToPortfolio = async (companyId, userId) =>
+  await query(
+    "INSERT INTO user_company_radar (user_id, company_id) VALUES ($1, $2) ",
+    [userId, companyId]
+  );
 
-const updateSharesOwned = async (userId, companyId, sharesOwned) => await query('UPDATE user_company_radar SET shares_owned = $1 WHERE company_id = $2 AND user_id = $3', [sharesOwned, companyId, userId])
+const updateSharesOwned = async (userId, companyId, sharesOwned) =>
+  await query(
+    "UPDATE user_company_radar SET shares_owned = $1 WHERE company_id = $2 AND user_id = $3",
+    [sharesOwned, companyId, userId]
+  );
 
-const updatePrice = async (price, companyId) => { await query('UPDATE company_info SET price = $1 WHERE company_id = $2', [price, companyId]) }
+const updatePrice = async (price, companyId) => {
+  await query("UPDATE company_info SET price = $1 WHERE company_id = $2", [
+    price,
+    companyId,
+  ]);
+};
 
 const updateTtmBalanceSheet = async (stockData, companyId, client) => {
   if (!stockData || stockData.length === 0) {
-    throw new DatabaseError('Stock data is required')
+    throw new DatabaseError("Stock data is required");
   }
 
   // TTM es siempre 1 fila, tomamos la primera
-  const stockInfo = stockData[0]
+  const stockInfo = stockData[0];
 
-  // Calcular financial debt
-  const longTermCapitalLeases = Number(stockInfo.long_term_capital_leases) || 0
-  const shortTermCapitalLeases = Number(stockInfo.short_term_capital_leases) || 0
-  const totalDebt = Number(stockInfo.total_debt) || 0
-  const financialDebt = Math.max(0, totalDebt - longTermCapitalLeases - shortTermCapitalLeases)
+  const longTermCapitalLeases = Number(stockInfo.long_term_capital_leases) || 0;
+  const shortTermCapitalLeases =
+    Number(stockInfo.short_term_capital_leases) || 0;
+  const totalDebt = Number(stockInfo.total_debt) || 0;
+
+  const financialDebt = calculateFinancialDebt(
+    totalDebt,
+    longTermCapitalLeases,
+    shortTermCapitalLeases
+  );
+  const costOfDebt =
+    calculateCostOfDebt(stockInfo.interest_expense, financialDebt) || 0;
+
+  const totalUnearnedRevenues = calculateTotalUnearnedRevenues(
+    stockInfo.unearned_revenues,
+    stockInfo.unearned_revenues_non_current
+  );
 
   try {
     const result = await client.query(updateBalanceSheetSqlTTM, [
@@ -1299,8 +1514,12 @@ const updateTtmBalanceSheet = async (stockData, companyId, client) => {
       stockInfo.short_term_debt ? Number(stockInfo.short_term_debt) : null,
       stockInfo.long_term_debt ? Number(stockInfo.long_term_debt) : null,
       Number(stockInfo.total_debt) || 0,
-      stockInfo.long_term_capital_leases ? Number(stockInfo.long_term_capital_leases) : null,
-      stockInfo.short_term_capital_leases ? Number(stockInfo.short_term_capital_leases) : null,
+      stockInfo.long_term_capital_leases
+        ? Number(stockInfo.long_term_capital_leases)
+        : null,
+      stockInfo.short_term_capital_leases
+        ? Number(stockInfo.short_term_capital_leases)
+        : null,
       Number(stockInfo.unearned_revenues) || 0,
       Number(stockInfo.accounts_receivable) || 0,
       Number(stockInfo.accounts_payable) || 0,
@@ -1308,39 +1527,50 @@ const updateTtmBalanceSheet = async (stockData, companyId, client) => {
       Number(stockInfo.goodwill) || 0,
       Number(stockInfo.total_assets) || 0,
       Number(stockInfo.other_intangibles) || 0,
-      financialDebt
-    ])
+      financialDebt,
+      costOfDebt,
+      Number(stockInfo.prepaid_expenses) || 0,
+      Number(stockInfo.accrued_expenses) || 0,
+      totalUnearnedRevenues,
+    ]);
 
-    return result
+    return result;
   } catch (error) {
-    console.error('Error updating TTM balance sheet:', {
+    console.error("Error updating TTM balance sheet:", {
       message: error.message,
       companyId,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to update TTM balance sheet', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to update TTM balance sheet", error);
   }
-}
+};
 
-const updateTtmCashFlowsStatement = async (stockData, companyId, client, lastYearWorkingCapital) => {
+const updateTtmCashFlowsStatement = async (
+  stockData,
+  companyId,
+  client,
+  lastYearWorkingCapital
+) => {
   if (!stockData || stockData.length === 0) {
-    throw new DatabaseError('Stock data is required')
+    throw new DatabaseError("Stock data is required");
   }
 
-  const stockInfo = stockData[0]
-  const index = 0
+  const stockInfo = stockData[0];
+  const index = 0;
 
   const changeInNetWorkingCapital = calculateChangeInWorkingCapital(
     index,
     stockData,
     lastYearWorkingCapital
-  )
+  );
 
-  const FCFE = calculateFFCFE(stockInfo, changeInNetWorkingCapital)
-  const FCFF = calculateFFCFE(stockInfo, changeInNetWorkingCapital)
+  const FCFE = calculateFFCFE(stockInfo, changeInNetWorkingCapital);
+  const FCFF = calculateFFCFE(stockInfo, changeInNetWorkingCapital);
 
-  const reinvestmentRate = getReinvestMentRate(index, stockData, FCFE)
-  const safeReinvestmentRate = isFinite(reinvestmentRate) ? reinvestmentRate : 0
+  const reinvestmentRate = getReinvestMentRate(index, stockData, FCFE);
+  const safeReinvestmentRate = isFinite(reinvestmentRate)
+    ? reinvestmentRate
+    : 0;
 
   const workingCapital = calculateWorkingCapital(
     stockInfo.accounts_receivable,
@@ -1349,11 +1579,14 @@ const updateTtmCashFlowsStatement = async (stockData, companyId, client, lastYea
     stockInfo.accounts_payable,
     stockInfo.accrued_expenses,
     stockInfo.total_unearned_revenues
-  )
+  );
 
   const unleaveredFcf = Number(
-    (Number(stockInfo.operating_cash_flow) + Number(stockInfo.capital_expenditures)).toFixed(2)
-  )
+    (
+      Number(stockInfo.operating_cash_flow) +
+      Number(stockInfo.capital_expenditures)
+    ).toFixed(2)
+  );
 
   try {
     const result = await client.query(updateCashFlowStatementTtmSql, [
@@ -1371,36 +1604,39 @@ const updateTtmCashFlowsStatement = async (stockData, companyId, client, lastYea
       workingCapital,
       Number(stockInfo.depreciation_and_amortization) || 0,
       FCFE,
-      'ttm',
+      "ttm",
       unleaveredFcf,
-      FCFF
-    ])
+      FCFF,
+    ]);
 
-    return result
+    return result;
   } catch (error) {
-    console.error('Error updating TTM cash flow statement:', {
+    console.error("Error updating TTM cash flow statement:", {
       message: error.message,
       companyId,
-      stack: error.stack
-    })
-    throw new DatabaseError('Failed to update TTM cash flow statement', error)
+      stack: error.stack,
+    });
+    throw new DatabaseError("Failed to update TTM cash flow statement", error);
   }
-}
+};
 
 const updateTtmIncomeStatement = async (stockData, companyId, client) => {
   if (!stockData || stockData.length === 0) {
-    throw new DatabaseError('Stock data is required')
+    throw new DatabaseError("Stock data is required");
   }
 
   if (stockData.length === 1) {
-    const stockInfo = stockData[0]
+    const stockInfo = stockData[0];
 
-    const operatingIncome = Number(stockInfo?.operating_income) || 0
-    const incomeTax = Number(stockInfo?.income_tax_expense) || 0
-    const incomeBeforeTax = Number(stockInfo?.income_before_taxes) || 0
+    const operatingIncome = Number(stockInfo?.operating_income) || 0;
+    const incomeTax = Number(stockInfo?.income_tax_expense) || 0;
+    const incomeBeforeTax = Number(stockInfo?.income_before_taxes) || 0;
 
-    const taxRate = calculateTaxRate(stockInfo.income_tax_expense, stockInfo.income_before_taxes)
-    const NOPAT = operatingIncome * (1 + (Number(taxRate) / 100))
+    const taxRate = calculateTaxRate(
+      stockInfo.income_tax_expense,
+      stockInfo.income_before_taxes
+    );
+    const NOPAT = operatingIncome * (1 + Number(taxRate) / 100);
 
     try {
       const result = await client.query(updateIncomeStatementTtmSql, [
@@ -1415,38 +1651,49 @@ const updateTtmIncomeStatement = async (stockData, companyId, client) => {
         Number(stockInfo.interest_expense) || 0,
         incomeBeforeTax,
         incomeTax,
-        'ttm',
-        NOPAT
-      ])
+        "ttm",
+        NOPAT,
+        Number(stockInfo.interest_income) || 0,
+        taxRate,
+      ]);
 
-      return result
+      return result;
     } catch (error) {
-      console.error('Error updating TTM income statement:', {
+      console.error("Error updating TTM income statement:", {
         message: error.message,
         companyId,
-        stack: error.stack
-      })
-      throw new DatabaseError('Failed to update TTM income statement', error)
+        stack: error.stack,
+      });
+      throw new DatabaseError("Failed to update TTM income statement", error);
     }
   }
-}
+};
 const updateDate = async (company_id, client = false) => {
-  const updatedDate = new Date()
+  const updatedDate = new Date();
 
   if (client) {
-    await client.query('UPDATE company_info SET updated_at = $1 WHERE company_id = $2', [updatedDate, company_id])
+    await client.query(
+      "UPDATE company_info SET updated_at = $1 WHERE company_id = $2",
+      [updatedDate, company_id]
+    );
   } else {
-    await query('UPDATE company_info SET updated_at = $1 WHERE company_id = $2', [updatedDate, company_id])
+    await query(
+      "UPDATE company_info SET updated_at = $1 WHERE company_id = $2",
+      [updatedDate, company_id]
+    );
   }
-}
+};
 
 const deleteAdminPriceEstimation = async (company_id, client) => {
-  await client.query('UPDATE company_info SET  default_dcf_estimated_price = null, default_estimated_price_in_five_years = null WHERE company_id = $1', [company_id])
   await client.query(
-    'UPDATE user_company_radar SET user_estimated_price_in_five_years = null, user_dcf_estimated_price = null WHERE company_id = $1',
+    "UPDATE company_info SET  default_dcf_estimated_price = null, default_estimated_price_in_five_years = null WHERE company_id = $1",
     [company_id]
-  )
-}
+  );
+  await client.query(
+    "UPDATE user_company_radar SET user_estimated_price_in_five_years = null, user_dcf_estimated_price = null WHERE company_id = $1",
+    [company_id]
+  );
+};
 
 export default {
   deleteEstimationsAdmin,
@@ -1488,5 +1735,5 @@ export default {
   updateCashFlowStatementReit,
   createHistoricMetrics,
   getHistoricMetrics,
-  updateHistoricMetrics
-}
+  updateHistoricMetrics,
+};
