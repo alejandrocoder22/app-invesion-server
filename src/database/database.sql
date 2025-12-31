@@ -206,6 +206,7 @@ CREATE TABLE stock_estimations (
   year INT NOT NULL,
   revenue NUMERIC(12, 2),
   operating_income NUMERIC(12, 2),
+  operating_cash_flow NUMERIC(12, 2),
   interest_expense NUMERIC(12, 2),
   interest_income NUMERIC(12, 2),
   accounts_receivable NUMERIC(12, 2),

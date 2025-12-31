@@ -1,4 +1,3 @@
-
 export const getEmptyDescriptionsSql = `
 SELECT  
 company_id,
@@ -8,7 +7,7 @@ description
 FROM company_info
 
 WHERE description = '' OR description IS NULL
-`
+`;
 
 export const getHistoricMetricsSql = `
   SELECT * FROM (
@@ -55,10 +54,9 @@ export const getHistoricMetricsSql = `
   ORDER BY 
     CASE WHEN fiscal_year IS NULL THEN 9999 ELSE fiscal_year END ASC,
     period_type ASC;
-`
+`;
 
-export const getAllStocskSql =
-    `
+export const getAllStocskSql = `
 SELECT 
     ci.company_id,
     ci.ticker,
@@ -143,7 +141,7 @@ ORDER BY
     ci.company_id;
 
 
-    `
+    `;
 
 export const getTtmDataByCompanyId = `
 
@@ -209,7 +207,7 @@ WHERE
 
 
 
-`
+`;
 
 export const getAllOwnedTickersSql = `
 
@@ -227,7 +225,7 @@ FROM
 ORDER BY 
     ci.company_id;
 
-`
+`;
 
 export const getAllOwnedStocskSql = `
 
@@ -328,7 +326,7 @@ ORDER BY
 
 
 
-`
+`;
 
 export const updateStockMetricsSql = `UPDATE company_metrics
   SET
@@ -355,7 +353,7 @@ export const updateStockMetricsSql = `UPDATE company_metrics
     
     
     WHERE company_id = $18
-  `
+  `;
 
 export const createIncomeStatementSql = `
 INSERT INTO income_statements 
@@ -377,7 +375,7 @@ nopat
 )
 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
 
-`
+`;
 
 export const createBalancesheetSql = `
 INSERT INTO balance_sheets  
@@ -406,7 +404,7 @@ period_type
 )
 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
 
-`
+`;
 
 export const createCashFlowStatementSql = `
 INSERT INTO cash_flow_statements  
@@ -435,7 +433,7 @@ issued_shares
 )
 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15, $16,$17,$18,$19,$20,$21)
 
-`
+`;
 
 export const createCashFlowStatemenReitSql = `
 INSERT INTO cash_flow_statements  
@@ -460,7 +458,7 @@ sale_of_assets
 )
 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15, $16, $17)
 
-`
+`;
 
 export const createMetricsSql = `INSERT INTO company_metrics
   (
@@ -495,7 +493,7 @@ ebitda_margin
 
   )
   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)
-  `
+  `;
 
 export const updateMetricsSql = `
 UPDATE company_metrics
@@ -530,7 +528,7 @@ SET
     ebitda_margin = $28
 WHERE company_id = $1;
 
-  `
+  `;
 export const updateIncomeStatementSql = `
 
 UPDATE income_statements
@@ -553,7 +551,7 @@ SET
 WHERE company_id = $1 AND fiscal_year = $2
 
 
-`
+`;
 
 export const updateIncomeStatementTtmSql = `
 
@@ -571,13 +569,13 @@ SET
     income_tax_expense = $11,
     period_type = $12,
     nopat = $13,
-    updated_at = NOW(),
     interest_income = $14,
     tax_rate = $15
+    updated_at = NOW(),
  WHERE company_id = $1 AND period_type= $12
 
 
-`
+`;
 
 export const updateBalanceSheetSql = `
 UPDATE balance_sheets
@@ -608,7 +606,7 @@ SET
     total_unearned_revenues = $25
 WHERE company_id = $1 AND fiscal_year = $2
 
-`
+`;
 
 export const updateBalanceSheetSqlTTM = `
 UPDATE balance_sheets
@@ -638,7 +636,7 @@ SET
     total_unearned_revenues = $23
 WHERE company_id = $1 AND period_type = 'ttm'
 
-`
+`;
 
 export const updateCashFlowStatementReitSql = `
 
@@ -656,7 +654,7 @@ SET
     sale_of_assets = $12,
     updated_at = NOW()
 WHERE company_id = $1 AND fiscal_year = $2
-`
+`;
 
 export const updateTtmReitCashFlowStatementSql = `
 
@@ -674,7 +672,7 @@ SET
     sale_of_assets = $11,
     updated_at = NOW()
 WHERE company_id = $1 AND period_type = $10
-`
+`;
 
 export const updateCashFlowStatementTtmSql = `
 
@@ -697,4 +695,4 @@ simple_free_cash_flow = $16,
 free_cash_flow_to_firm = $17,
 updated_at = NOW()
 WHERE company_id = $1 AND period_type = $15
-`
+`;
