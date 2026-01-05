@@ -693,6 +693,7 @@ depreciation_and_amortization = $13,
 free_cash_flow_to_equity = $14,
 simple_free_cash_flow = $16,
 free_cash_flow_to_firm = $17,
+other_net_operating_assets = $18,
 updated_at = NOW()
 WHERE company_id = $1 AND period_type = $15
 `;

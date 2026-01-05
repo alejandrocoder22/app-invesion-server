@@ -175,6 +175,7 @@ const getOneStockTenYearsHistoric = (companyId) =>
         c.reported_change_in_working_capital,
         c.simple_free_cash_flow,
         c.net_debt_issued,
+        c.other_net_operating_assets,
         c.net_repurchased_shares,
         c.issued_shares,
         c.free_cash_flow_to_firm,
@@ -419,6 +420,7 @@ const updateCashFlowStatement = async (
         Number(data.issued_shares) || 0,
         Number(data.net_repurchased_shares) || 0,
         Number(data.free_cash_flow_to_firm) || 0,
+        Number(data.other_net_operating_assets) || 0,
       ];
 
       return client.query(sql, params);
@@ -1250,6 +1252,7 @@ const createCashFlowStatement = async (
       netRepurchasedShares,
       issuedShares,
       FCFF,
+      Number(sotkcInfo.other_net_operating_assets) || 0,
     ];
   });
 
@@ -1290,7 +1293,8 @@ const createCashFlowStatement = async (
       net_debt_issued,
       net_repurchased_shares,
       issued_shares,
-      free_cash_flow_to_firm
+      free_cash_flow_to_firm,
+      other_net_operating_assets
       
     ) VALUES ${placeholders}
   `;
@@ -1607,6 +1611,7 @@ const updateTtmCashFlowsStatement = async (
       "ttm",
       unleaveredFcf,
       FCFF,
+      Number(stockInfo.other_net_operating_assets) || 0,
     ]);
 
     return result;

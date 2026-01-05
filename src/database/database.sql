@@ -117,6 +117,7 @@ CREATE TABLE cash_flow_statements (
     simple_free_cash_flow NUMERIC(20,4),
     net_debt_issued NUMERIC(20,4),
     sale_of_assets NUMERIC(20,4),
+    other_net_operating_assets NUMERIC(20,4),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(company_id, fiscal_year)
@@ -228,6 +229,7 @@ CREATE TABLE stock_estimations (
   net_debt_issued NUMERIC(12, 2),
   equity NUMERIC(12, 2),
   net_repurchased_shares NUMERIC(12, 2),
+  other_net_operating_assets NUMERIC(20, 4),
   discount NUMERIC(12, 2),
   ebit_multiple NUMERIC(12, 2),
   fair_multiple NUMERIC(12, 2),
