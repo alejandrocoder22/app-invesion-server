@@ -285,10 +285,7 @@ const calculateAverageMetricByYears = (
   for (let i = stockInfo.length - 1; i > stockInfo.length - years - 1; i--) {
     arrayOfFcf.push(
       Number(
-        calculateFcfMargin(
-          calculateRealFcf(stockInfo[i], changeInNetWorkingCapital[i]),
-          stockInfo[i].revenue
-        )
+        calculateFcfMargin(calculateRealFcf(stockInfo[i]), stockInfo[i].revenue)
       )
     );
     arrayOfOm.push(Number(calculateOperatingMargin(stockInfo[i])));
@@ -341,7 +338,8 @@ export const calculateWorkingCapital = (
   prepaid_expenses = 0,
   accounts_payable,
   accrued_expenses,
-  total_unearned_revenues
+  total_unearned_revenues,
+  other_net_operating_assets = 0
 ) => {
   return (
     Number(accounts_receivable) +
@@ -349,7 +347,8 @@ export const calculateWorkingCapital = (
     Number(prepaid_expenses) -
     Number(accounts_payable) -
     Number(accrued_expenses) -
-    Number(total_unearned_revenues)
+    Number(total_unearned_revenues) -
+    Number(other_net_operating_assets)
   ).toFixed(2);
 };
 
@@ -376,7 +375,8 @@ export const calculateChangeInWorkingCapital = (
         stockHistoricData[i]?.prepaid_expenses,
         stockHistoricData[i]?.accounts_payable,
         stockHistoricData[i]?.accrued_expenses,
-        stockHistoricData[i]?.total_unearned_revenues
+        stockHistoricData[i]?.total_unearned_revenues,
+        stockHistoricData[i]?.other_net_operating_assets
       ) - Number(lastYearWorkingCapital)
     );
   } else {
@@ -388,7 +388,8 @@ export const calculateChangeInWorkingCapital = (
           stockHistoricData[i]?.prepaid_expenses,
           stockHistoricData[i]?.accounts_payable,
           stockHistoricData[i]?.accrued_expenses,
-          stockHistoricData[i]?.total_unearned_revenues
+          stockHistoricData[i]?.total_unearned_revenues,
+          stockHistoricData[i]?.other_net_operating_assets
         ) -
           calculateWorkingCapital(
             stockHistoricData[i - 1]?.accounts_receivable,
@@ -396,7 +397,8 @@ export const calculateChangeInWorkingCapital = (
             stockHistoricData[i - 1]?.prepaid_expenses,
             stockHistoricData[i - 1]?.accounts_payable,
             stockHistoricData[i - 1]?.accrued_expenses,
-            stockHistoricData[i - 1]?.total_unearned_revenues
+            stockHistoricData[i - 1]?.total_unearned_revenues,
+            stockHistoricData[i - 1]?.other_net_operating_assets
           );
   }
 };
@@ -404,18 +406,8 @@ export const calculateChangeInWorkingCapital = (
 export const calculateScore = (allScoreMetrics) =>
   defaultStrategy(allScoreMetrics);
 
-// export const calculateRealFcf = (stockData) => {
-//   const workingCapital = stockData.reported_change_in_working_capital || stockData.change_in_working_capital || 0
-
-//   const realFcf = (Number(stockData.operating_income) + Number(stockData.interest_expense) + Number(stockData.interest_income) + Number(stockData.income_tax_expense) + Number(stockData.depreciation_and_amortization) + Number(workingCapital) + Number(stockData.capital_expenditures)).toFixed(2)
-//   return realFcf
-// }
-
 export const calculateRealFcf = (stockData) => {
-  const workingCapital =
-    stockData.reported_change_in_working_capital ||
-    stockData.change_in_working_capital ||
-    0;
+  const workingCapital = stockData.reported_change_in_working_capital;
 
   const debtIssued = Number(stockData.debt_issued) || 0;
   const debtRepaid = Number(stockData.debt_repaid) || 0;

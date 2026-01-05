@@ -20,7 +20,8 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
           stockDataToUpdate[prevIndex].prepaid_expenses,
           stockDataToUpdate[prevIndex].accounts_payable,
           stockDataToUpdate[prevIndex].accrued_expenses,
-          stockDataToUpdate[prevIndex].total_unearned_revenues
+          stockDataToUpdate[prevIndex].total_unearned_revenues,
+          stockDataToUpdate[prevIndex].other_net_operating_assets
         )
       : calculateWorkingCapital(
           stockInfo.accounts_receivable,
@@ -28,7 +29,8 @@ export const prepareCashFlowData = (stockDataToUpdate) => {
           stockInfo.prepaid_expenses,
           stockInfo.accounts_payable,
           stockInfo.accrued_expenses,
-          stockInfo.total_unearned_revenues
+          stockInfo.total_unearned_revenues,
+          stockInfo.other_net_operating_assets
         );
 
     const changeInWorkingCapital = calculateChangeInWorkingCapital(

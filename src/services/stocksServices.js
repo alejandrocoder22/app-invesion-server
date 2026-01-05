@@ -1223,7 +1223,8 @@ const createCashFlowStatement = async (
       stockInfo.prepaid_expenses,
       stockInfo.accounts_payable,
       stockInfo.accrued_expenses,
-      totalUnearnedRevenues
+      totalUnearnedRevenues,
+      stockInfo.other_net_operating_assets
     );
     const simpleFcf =
       Number(stockInfo.operating_cash_flow) +
@@ -1366,7 +1367,8 @@ const createCashFlowStatementReit = async (
                 stockInfo.prepaid_expenses,
                 stockInfo.accounts_payable,
                 stockInfo.accrued_expenses,
-                totalUnearnedRevenues
+                totalUnearnedRevenues,
+                stockInfo.other_net_operating_assets
               ), // working_capital
               stockInfo.depreciation_and_amortization, // depreciation_and_amortization
               FFO,
@@ -1582,7 +1584,8 @@ const updateTtmCashFlowsStatement = async (
     stockInfo.prepaid_expenses,
     stockInfo.accounts_payable,
     stockInfo.accrued_expenses,
-    stockInfo.total_unearned_revenues
+    stockInfo.total_unearned_revenues,
+    stockInfo.other_net_operating_assets
   );
 
   const unleaveredFcf = Number(

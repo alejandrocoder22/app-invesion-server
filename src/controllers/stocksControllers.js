@@ -619,9 +619,9 @@ const upsertEstimations = async (req, res, next) => {
     simple_free_cash_flow, tax_rate, cost_of_debt,
     net_debt_issued, equity, net_repurchased_shares, stocks_compensations,
     discount, ebit_multiple, fair_multiple, midterm_growth,
-    roe_mid, terminal_rate, interest_income, accounts_receivable, inventories, prepaid_expenses,accounts_payable,accrued_expenses,total_unearned_revenues, operating_cash_flow
+    roe_mid, terminal_rate, interest_income, accounts_receivable, inventories, prepaid_expenses,accounts_payable,accrued_expenses,total_unearned_revenues, operating_cash_flow, other_net_operating_assets
   )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34)
 
   ON CONFLICT (company_id, year)
   DO UPDATE SET
@@ -656,6 +656,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $
     accrued_expenses = EXCLUDED.accrued_expenses,
     total_unearned_revenues = EXCLUDED.total_unearned_revenues,
     operating_cash_flow = EXCLUDED.operating_cash_flow,
+    other_net_operating_assets = EXCLUDED.other_net_operating_assets,
     updated_at = NOW()
 `;
 
@@ -694,6 +695,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $
         estimation.accrued_expenses,
         estimation.total_unearned_revenues,
         estimation.operating_cash_flow,
+        estimation.other_net_operating_assets,
       ];
       await pool.query(query, values);
     }
