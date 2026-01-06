@@ -417,8 +417,7 @@ export const calculateRealFcf = (stockData) => {
     Number(stockData.net_income) +
     Number(stockData.depreciation_and_amortization) +
     Number(workingCapital) +
-    Number(stockData.capital_expenditures) +
-    netBorrow
+    Number(stockData.capital_expenditures)
   ).toFixed(2);
   return realFcf;
 };
@@ -443,6 +442,7 @@ export const calculateFCFF = (stockData) => {
 };
 
 export const calculateSimpleFcf = (stockData) => {
+  console.log(stockData);
   const simpleFcf =
     Number(stockData.operating_cash_flow) +
     Number(stockData.capital_expenditures) -
