@@ -347,8 +347,7 @@ export const calculateWorkingCapital = (
     Number(prepaid_expenses) -
     Number(accounts_payable) -
     Number(accrued_expenses) -
-    Number(total_unearned_revenues) -
-    Number(other_net_operating_assets)
+    Number(total_unearned_revenues)
   ).toFixed(2);
 };
 
