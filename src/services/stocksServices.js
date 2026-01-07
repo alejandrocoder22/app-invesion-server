@@ -1253,7 +1253,7 @@ const createCashFlowStatement = async (
       netRepurchasedShares,
       issuedShares,
       FCFF,
-      Number(sotkcInfo.other_net_operating_assets) || 0,
+      Number(stockInfo.other_net_operating_assets) || 0,
     ];
   });
 
