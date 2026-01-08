@@ -39,7 +39,7 @@
     "pg": "8.6.0",
     "puppeteer": "16.2.0",
     "standard": "16.0.3",
-    "yahoo-finance2": "2.14.0"
+    "yahoo-finance2": "3.11.2"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
