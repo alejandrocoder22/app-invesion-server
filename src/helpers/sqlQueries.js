@@ -243,6 +243,7 @@ SELECT
     ci.default_dcf_estimated_price,
     ci.use_simple_fcf,
     ci.dividend_months,
+    ci.projected_dividends,
     ci.created_at AS company_created_at,
     ci.updated_at AS company_updated_at,
     
