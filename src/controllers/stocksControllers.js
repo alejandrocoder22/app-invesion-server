@@ -533,13 +533,15 @@ const getAllStocksHistoric = async (req, res, next) => {
 const updateBuyPrice = async (req, res, next) => {
   const { userId } = req.user;
   const { companyId } = req.params;
-  const { futurePrice, futureDcfPrice, futureEps } = req.body;
+  const { futurePrice, futureDcfPrice, futureEps, projectedDividends } =
+    req.body;
 
   try {
     if (req.user.isAdmin) {
       await stocksServices.updateBuyPriceDefault(
         Number(futureDcfPrice),
         futurePrice,
+        projectedDividends,
         companyId,
         userId
       );
@@ -548,10 +550,12 @@ const updateBuyPrice = async (req, res, next) => {
       await stocksServices.updateBuyPriceUser(
         Number(futureDcfPrice),
         futurePrice,
+        projectedDividends,
         companyId,
         userId
       );
     }
+
     apicache.clear("/stocks");
     handleSuccess(res, 200, {}, "Updated valuation targets");
   } catch (error) {
@@ -591,7 +595,6 @@ const upsertEstimations = async (req, res, next) => {
       });
     }
 
-    console.log(estimations);
     if (
       !estimations ||
       !Array.isArray(estimations) ||

@@ -1446,17 +1446,30 @@ WHERE
 const updateBuyPriceUser = async (
   futureDcfPrice,
   futurePrice,
+  projectedDividends,
   companyId,
   userId
 ) =>
   query(
-    "UPDATE user_company_radar SET user_estimated_price_in_five_years = $1, user_dcf_estimated_price = $2 WHERE company_id = $3 AND user_id = $4",
-    [futurePrice, futureDcfPrice, companyId, userId]
+    "UPDATE user_company_radar SET user_estimated_price_in_five_years = $1, user_dcf_estimated_price = $2, projected_dividends = $3 WHERE company_id = $4 AND user_id = $5",
+    [
+      futurePrice,
+      futureDcfPrice,
+      JSON.stringify(projectedDividends),
+      companyId,
+      userId,
+    ]
   );
-const updateBuyPriceDefault = async (futureDcfPrice, futurePrice, companyId) =>
+
+const updateBuyPriceDefault = async (
+  futureDcfPrice,
+  futurePrice,
+  projectedDividends,
+  companyId
+) =>
   query(
-    "UPDATE company_info SET default_estimated_price_in_five_years = $1, default_dcf_estimated_price = $2 WHERE company_id = $3 ",
-    [futurePrice, futureDcfPrice, companyId]
+    "UPDATE company_info SET default_estimated_price_in_five_years = $1, default_dcf_estimated_price = $2,  projected_dividends = $3 WHERE company_id = $4 ",
+    [futurePrice, futureDcfPrice, JSON.stringify(projectedDividends), companyId]
   );
 const updateForwardEps = async (forwardEps, companyId) =>
   query(

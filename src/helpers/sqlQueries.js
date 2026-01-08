@@ -69,6 +69,7 @@ SELECT
     ci.updated_at AS company_updated_at,
     ci.default_dcf_estimated_price,
     ci.use_simple_fcf,
+    ci.projected_dividends,
     
     -- Income Statement Data
     is_.net_income,

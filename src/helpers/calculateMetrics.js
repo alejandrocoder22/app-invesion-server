@@ -442,7 +442,6 @@ export const calculateFCFF = (stockData) => {
 };
 
 export const calculateSimpleFcf = (stockData) => {
-  console.log(stockData);
   const simpleFcf =
     Number(stockData.operating_cash_flow) +
     Number(stockData.capital_expenditures) -

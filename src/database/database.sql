@@ -13,6 +13,7 @@ CREATE TABLE company_info (
     thesis TEXT,
     default_estimated_price_in_five_years NUMERIC(10,4),
     default_dcf_estimated_price NUMERIC(10,4),
+    projected_dividends JSONB, 
     dividend_months INTEGER[] DEFAULT '{}',
     use_simple_fcf BOOLEAN DEFAULT FALSE;
     created_at TIMESTAMPTZ DEFAULT NOW(),
