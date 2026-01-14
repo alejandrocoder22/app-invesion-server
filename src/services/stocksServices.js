@@ -826,8 +826,7 @@ const createIncomeStatemente = async (stockHistoricData, companyId, client) => {
     );
     
 
-    console.log(taxRate);
-    NOPAT = operatingIncome * (1 + Number(taxRate) / 100);
+    const NOPAT = operatingIncome * (1 + Number(taxRate) / 100);
 
     const isTTM =
       index === stockHistoricData.length - 1 && stockHistoricData.length > 1;
