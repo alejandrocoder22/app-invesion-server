@@ -240,6 +240,10 @@ const updateIncomeStatement = async (stockDataToUpdate, companyId, client) => {
         stockInfo.income_tax_expense,
         stockInfo.income_before_taxes
       );
+
+
+      console.log(taxRate);
+
       const NOPAT = operatingIncome * (1 + Number(taxRate) / 100);
       const isTTM = index === 10;
       const fiscalYear = isTTM ? null : stockInfo.year;
@@ -451,6 +455,13 @@ const updateCashFlowStatementReit = async (
         Number(stockInfo.depreciation_and_amortization) -
         Number(stockInfo.sale_of_assets)
       ).toFixed(2);
+
+     const repurchasedShares = Number(stockInfo.repurchased_shares) || 0;
+    const issuedShares = Number(stockInfo.issued_shares) || 0;
+
+    const netRepurchasedShares = repurchasedShares + issuedShares;
+
+
       i === 10
         ? await client.query(updateTtmReitCashFlowStatementSql, [
             companyId, // company_id
@@ -464,6 +475,7 @@ const updateCashFlowStatementReit = async (
             FFO || 0,
             "ttm",
             stockInfo.sale_of_assets || 0,
+            netRepurchasedShares
           ])
         : await client.query(updateCashFlowStatementReitSql, [
             companyId, // company_id
@@ -478,6 +490,7 @@ const updateCashFlowStatementReit = async (
             FFO || 0, // free_cash_flow
             "annual",
             stockInfo.sale_of_assets || 0,
+            netRepurchasedShares
           ]);
     });
   } catch (error) {
@@ -811,7 +824,10 @@ const createIncomeStatemente = async (stockHistoricData, companyId, client) => {
       stockInfo.income_tax_expense,
       stockInfo.income_before_taxes
     );
-    const NOPAT = operatingIncome * (1 + Number(taxRate) / 100);
+    
+
+    console.log(taxRate);
+    NOPAT = operatingIncome * (1 + Number(taxRate) / 100);
 
     const isTTM =
       index === stockHistoricData.length - 1 && stockHistoricData.length > 1;

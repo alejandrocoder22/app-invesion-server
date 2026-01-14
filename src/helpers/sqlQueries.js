@@ -651,9 +651,10 @@ SET
     stocks_compensations = $7,
     repurchased_shares = $8,
     depreciation_and_amortization = $9,
-    free_cash_flow = $10,
+    free_cash_flow_to_equity = $10,
     period_type = $11,
     sale_of_assets = $12,
+    net_repurchased_shares = $13,
     updated_at = NOW()
 WHERE company_id = $1 AND fiscal_year = $2
 `;
@@ -669,9 +670,10 @@ SET
     stocks_compensations = $6,
     repurchased_shares = $7,
     depreciation_and_amortization = $8,
-    free_cash_flow = $9,
+    free_cash_flow_to_equity = $9,
     period_type = $10,
     sale_of_assets = $11,
+    net_repurchased_shares = $12,
     updated_at = NOW()
 WHERE company_id = $1 AND period_type = $10
 `;
