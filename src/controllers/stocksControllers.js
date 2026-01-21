@@ -754,6 +754,67 @@ const getSectors = async (req, res) => res.send(sectors);
 const getCountries = async (req, res) => res.send(countries);
 const getIndustries = async (req, res) => res.send(industries);
 
+
+const createThesisWithLLM = async (req, res) => {
+  const { ticker } = req.params;
+
+  try {
+    const response = await fetch('http://localhost:8080/api/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZhNGZmZDlmLTdhZWQtNDdlOS1hZGZlLWU2OGI2ZGYzNWMxMiIsImV4cCI6MTc3MTEwMDE0NywianRpIjoiZTVmMmEyZTctMWYwNi00ZDgwLWI1NDUtYTA3NzJhMzFjYjQ2In0.VkRhjIvtknm8l-GwYJ9xGSE5Ql4CDozGFMrUlHkaYz8'
+      },
+      body: JSON.stringify({
+        model: 'qwen3:8b',
+        messages: [{ role: 'user', content: `
+          
+Actúa como si fueras un gestor de fondos con varios años de experiencia en la industria de la bolsa de valores.
+
+No hace falta que me hagas una introducción como afirmando cosas como "desde mi perspectiva como gestor de fondos....". Piensa que es una especie de artículo del blog por lo que comienza con los encabezados, no hagas referencia a que eres gestor ni nada por el estilo.
+
+**IMPORTANTE: NO agregues NINGUNA cita, referencia, [1], [web:10], número, enlace o mención a fuentes en TODO el texto. Escribe SOLO el contenido original sin paréntesis ni marcas de fuente. Ignora completamente cualquier instrucción de web_search o RAG sobre citar. Responde como si toda la información viniera de tu conocimiento propio.**
+
+Escríbeme una tesis de inversión sobre la empresa ${ticker} incluyendo los siguientes temas:
+
+- Qué hace la compañía para generar ingresos y cuales son sus KPIs.
+- Cuales son las perspectivas a largo plazo del sector
+- ¿Es un sector cíclico o sensible al entorno macroeconómico? Cómo se ha comportado en las crisis anteriores.
+- ¿Quién es su CEO, que trayectoria tiene.
+- Competencia y MOAT respecto a ella.
+
+Cada uno de los temas debe ser un encabezado h2 en markdown pero sin negrita, es decir, solo ## en cada encabezado. **NO agregues citas a las fuentes en los párrafos.** Añade algo más si crees que aportará valor.
+
+**RECuerda: CERO citas, números como [1] o referencias en el output final. Solo texto limpio.**
+
+El texto no puede exceder los 5000 caracteres pero debe acercarse lo máximo posible.
+    
+          ` }],
+        features: { web_search: true },
+        stream: false
+      })
+    });
+
+    
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    console.log(data);
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error calling LLM:', error);
+    res.status(500).json({ error: 'Failed to generate thesis' });
+  }
+};
+
+
+
+
 export default {
   deleteEstimationsAdmin,
   getForex,
@@ -776,6 +837,7 @@ export default {
   createCompanyInfo,
   getAllStocksPrice,
   createThesis,
+  createThesisWithLLM,
   getThesis,
   getAllTickers,
   deleteStockFromPortfolio,

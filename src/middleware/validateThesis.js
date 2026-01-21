@@ -27,10 +27,10 @@ const validateThesis = (req, res, next) => {
   }
 
   // Validar longitud máxima
-  if (text && typeof text === 'string' && text.length > 5000) {
+  if (text && typeof text === 'string' && text.length > 100000) {
     errors.push({
       field: 'text',
-      message: 'Text cannot exceed 5000 characters'
+      message: 'Text cannot exceed 100000 characters'
     })
   }
 
