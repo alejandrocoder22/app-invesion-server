@@ -813,6 +813,12 @@ El texto no puede exceder los 5000 caracteres pero debe acercarse lo máximo pos
 };
 
 
+const getNullThesis = async (req,res ) => {
+  const result = await pool.query('SELECT ticker FROM company_info where thesis ISNULL')
+
+  res.status(200).send(result.rows)
+}
+
 
 
 export default {
@@ -850,4 +856,5 @@ export default {
   upsertEstimations,
   getEstimations,
   getHistoricMetrics,
+  getNullThesis
 };

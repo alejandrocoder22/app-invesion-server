@@ -28,6 +28,7 @@ router.get('/thesis/:companyId', validateToken, stockControllers.getThesis)
 router.get('/:companyId', stockControllers.getOneStock)
 router.get('/ttm/:companyId', stockControllers.getOneStockTtm)
 router.get('/estimations/:companyId', stockControllers.getEstimations)
+router.get('/null-thesis/null', stockControllers.getNullThesis)
 
 router.delete('/:companyId', validateAdmin, stockControllers.deleteStock)
 router.delete('/portfolio/:companyId', validateToken, stockControllers.deleteStockFromPortfolio)
