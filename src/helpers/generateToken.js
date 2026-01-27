@@ -11,7 +11,7 @@ export const generateToken = (res, username, isAdmin, userId) => {
   res.cookie('x-token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'none',
+    sameSite: 'None',
     maxAge: 24 * 60 * 60 * 1000 // 1 día
   })
 }

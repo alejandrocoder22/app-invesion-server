@@ -757,8 +757,90 @@ const getIndustries = async (req, res) => res.send(industries);
 
 const createThesisWithLLM = async (req, res) => {
   const { ticker } = req.params;
+  const { company } = req.body;
+
+  // Tu template completo aquí (copia el prompt entero)
+  const PROMPT_TEMPLATE = `Actúa como senior financial analyst sin preámbulos. Responde **solo** con la estructura exacta, sin repetir preguntas del prompt, con **5-10 oraciones bien desarrolladas por subsección** (evita condensar a 1-2; explica con datos, trends y contexto del filing).  Usa párrafos fluidos **y bullets para claridad de los puntos más importantes**, mantén profesional tone.
+
+Tu análisis debe ser **data-driven**, basado en **official financial filings**, **conservative en assumptions**, y enfocado en **capital preservation y sustainable value creation**. **Sin añadir ninguna cita al texto ni meciones a la misma con [1], [2] o similares**. **Si hay algunas siglas en el texto al menos una vez menciona entre parentesus a que se refieren. Por ejemplo,  AUM (Assets Under Management)**
+
+Perform a full analysis of **{{Company}} ({{Ticker}})** siguiendo **strictly** la estructura y secuencia **y responde en español**.
+
+Prioriza información si la encuentras de los siguientes recursos:
+
+1. Identify the current year based on today’s date.  
+2. Locate the **most recent 10-Q** from the current year.  
+3. If no current-year 10-Q is available, use the **most recent 10-K** instead.  
+
+## Business Analysis
+
+### Company Overview
+
+Proporciona descripción clara de core products y services, enfatizando qué drives long-term shareholder value.
+
+### How Does It Make Money?
+
+Detalla revenue streams y operating segments, de más a menos importante, con % contribution si available.
+
+### Key Performance Indicators (KPIs)
+
+Lista y explica main metrics que management reports para medir performance y efficiency.
+
+### Customers
+
+Identifica main customer segments. Comenta customer concentration risk si material.
+
+### Competitors
+
+Lista key direct competitors y assessment breve de competitive positioning y differentiation.
+
+### Geographic Exposure
+
+Proporciona breakdown, e.g.:  
+- North America: XX%  
+- Europe: XX%  
+- Asia-Pacific: XX%
+
+### Revenue Recurrence
+
+Explica nature de revenues (recurring, subscription, etc.). Incluye renewal rates, retention, contract duration o switching costs si available.
+
+### Pricing Power
+
+Assess ability to raise prices, supported by:  
+- Historical gross/operating margins trends.  
+- Management commentary.  
+- Evidence from inflationary periods.  
+- Risks to margin stability.
+
+### Recession Sensitivity
+
+Analiza performance en downturns: cyclicality, historical en recessions, management guidance.
+
+### Capital Structure and Debt
+
+Evalúa balance sheet y leverage:  
+- Total debt.  
+- Maturity profile.  
+- Fixed vs. floating.  
+- Average cost.  
+- Vs. cash y FCF.
+
+## Analyst Mindset
+
+Adopta **long-term institutional investor mindset** enfocado en:  
+- Business quality y durability of moats.  
+- FCF stability.  
+- Balance sheet strength.  
+- Compounding potential.`;
 
   try {
+    const fillTemplate = (template, vars) => 
+      template.replace(/\{\{(.*?)\}\}/g, (_, v) => vars[v.trim()] || '');
+
+    const filledPrompt = fillTemplate(PROMPT_TEMPLATE, { Company: company, Ticker: ticker });
+
+    // ✅ PAYLOAD MÍNIMO que funciona en Open-WebUI
     const response = await fetch('http://localhost:8080/api/chat/completions', {
       method: 'POST',
       headers: {
@@ -766,51 +848,32 @@ const createThesisWithLLM = async (req, res) => {
         'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZhNGZmZDlmLTdhZWQtNDdlOS1hZGZlLWU2OGI2ZGYzNWMxMiIsImV4cCI6MTc3MTEwMDE0NywianRpIjoiZTVmMmEyZTctMWYwNi00ZDgwLWI1NDUtYTA3NzJhMzFjYjQ2In0.VkRhjIvtknm8l-GwYJ9xGSE5Ql4CDozGFMrUlHkaYz8'
       },
       body: JSON.stringify({
-        model: 'qwen3:8b',
-        messages: [{ role: 'user', content: `
-          
-Actúa como si fueras un gestor de fondos con varios años de experiencia en la industria de la bolsa de valores.
-
-No hace falta que me hagas una introducción como afirmando cosas como "desde mi perspectiva como gestor de fondos....". Piensa que es una especie de artículo del blog por lo que comienza con los encabezados, no hagas referencia a que eres gestor ni nada por el estilo.
-
-**IMPORTANTE: NO agregues NINGUNA cita, referencia, [1], [web:10], número, enlace o mención a fuentes en TODO el texto. Escribe SOLO el contenido original sin paréntesis ni marcas de fuente. Ignora completamente cualquier instrucción de web_search o RAG sobre citar. Responde como si toda la información viniera de tu conocimiento propio.**
-
-Escríbeme una tesis de inversión sobre la empresa ${ticker} incluyendo los siguientes temas:
-
-- Qué hace la compañía para generar ingresos y cuales son sus KPIs.
-- Cuales son las perspectivas a largo plazo del sector
-- ¿Es un sector cíclico o sensible al entorno macroeconómico? Cómo se ha comportado en las crisis anteriores.
-- ¿Quién es su CEO, que trayectoria tiene.
-- Competencia y MOAT respecto a ella.
-
-Cada uno de los temas debe ser un encabezado h2 en markdown pero sin negrita, es decir, solo ## en cada encabezado. **NO agregues citas a las fuentes en los párrafos.** Añade algo más si crees que aportará valor.
-
-**RECuerda: CERO citas, números como [1] o referencias en el output final. Solo texto limpio.**
-
-El texto no puede exceder los 5000 caracteres pero debe acercarse lo máximo posible.
-    
-          ` }],
-        features: { web_search: true },
-        stream: false
+        model: 'gpt-oss:20b',  // ✅ Verifica que existe en Open-WebUI
+        messages: [{ role: 'user', content: filledPrompt }],
+        stream: false      // ✅ Quita features hasta debuggear
       })
     });
 
-    
+    // DEBUG: Ver respuesta cruda
+    const rawResponse = await response.text();
+    console.log('Status:', response.status);
+    console.log('Raw response:', rawResponse.slice(0, 500));
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      throw new Error(`API ${response.status}: ${rawResponse.slice(0, 200)}`);
     }
 
-    const data = await response.json();
-
-    console.log(data);
-
+    const data = JSON.parse(rawResponse);
     res.json(data);
+
   } catch (error) {
-    console.error('Error calling LLM:', error);
-    res.status(500).json({ error: 'Failed to generate thesis' });
+    console.error('FULL ERROR:', error);
+    res.status(500).json({ error: error.message });
   }
 };
+
+
+
 
 
 const getNullThesis = async (req,res ) => {

@@ -1446,7 +1446,8 @@ const getThesis = async (companyId) =>
   
 SELECT
     ci.ticker,
-    ci.thesis
+    ci.thesis,
+    ci.company_name
 FROM
     company_info ci
 
