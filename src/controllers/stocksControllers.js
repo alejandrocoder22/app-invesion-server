@@ -909,7 +909,7 @@ Adopta **long-term institutional investor mindset** enfocado en:
 
 
 const getNullThesis = async (req,res ) => {
-  const result = await pool.query('SELECT ticker, company_name FROM company_info where thesis ISNULL')
+  const result = await pool.query('SELECT ticker, company_name, company_id FROM company_info where thesis ISNULL')
 
   res.status(200).send(result.rows)
 }
