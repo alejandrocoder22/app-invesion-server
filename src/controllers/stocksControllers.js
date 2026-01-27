@@ -760,17 +760,22 @@ const createThesisWithLLM = async (req, res) => {
     const response = await fetch('https://api.invesion.com/stocks/null-thesis/null');
     const nullThesisData = await response.json();
     
-    console.log(nullThesisData);
 
-    // Filtrar tickers sin company_name
     const validStocks = nullThesisData.filter(stock => stock.company_name !== null);
+    
+    console.log(`\n🚀 Starting sequential processing of ${validStocks.length} stocks...\n`);
 
-    const results = await Promise.all(
-      validStocks.map(async (stock) => {
-        try {
-          const { ticker, company_name } = stock;
+    const results = [];
 
-          const PROMPT_TEMPLATE = `Actúa como senior financial analyst sin preámbulos. Responde **solo** con la estructura exacta, sin repetir preguntas del prompt, con **5-10 oraciones bien desarrolladas por subsección** (evita condensar a 1-2; explica con datos, trends y contexto del filing).  Usa párrafos fluidos **y bullets para claridad de los puntos más importantes**, mantén profesional tone.
+    // Procesar de 1 en 1
+    for (let i = 0; i < validStocks.length; i++) {
+      const stock = validStocks[i];
+      const { ticker, company_name, company_id } = stock;
+
+      try {
+        console.log(`[${i + 1}/${validStocks.length}] Processing ${ticker} (${company_name})...`);
+
+        const PROMPT_TEMPLATE = `Actúa como senior financial analyst sin preámbulos. Responde **solo** con la estructura exacta, sin repetir preguntas del prompt, con **5-10 oraciones bien desarrolladas por subsección** (evita condensar a 1-2; explica con datos, trends y contexto del filing).  Usa párrafos fluidos **y bullets para claridad de los puntos más importantes**, mantén profesional tone.
 
 Tu análisis debe ser **data-driven**, basado en **official financial filings**, **conservative en assumptions**, y enfocado en **capital preservation y sustainable value creation**. **Sin añadir ninguna cita al texto ni meciones a la misma con [1], [2] o similares**. **Si hay algunas siglas en el texto al menos una vez menciona entre parentesus a que se refieren. Por ejemplo,  AUM (Assets Under Management)**
 
@@ -833,66 +838,80 @@ Adopta **long-term institutional investor mindset** enfocado en:
 - Balance sheet strength.  
 - Compounding potential.`;
 
-          const fillTemplate = (template, vars) => 
-            template.replace(/\{\{(.*?)\}\}/g, (_, v) => vars[v.trim()] || '');
+        const fillTemplate = (template, vars) => 
+          template.replace(/\{\{(.*?)\}\}/g, (_, v) => vars[v.trim()] || '');
 
-          const filledPrompt = fillTemplate(PROMPT_TEMPLATE, { 
-            Company: company_name, 
-            Ticker: ticker 
-          });
+        const filledPrompt = fillTemplate(PROMPT_TEMPLATE, { 
+          Company: company_name, 
+          Ticker: ticker 
+        });
 
-          const llmResponse = await fetch('http://localhost:8080/api/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZhNGZmZDlmLTdhZWQtNDdlOS1hZGZlLWU2OGI2ZGYzNWMxMiIsImV4cCI6MTc3MTEwMDE0NywianRpIjoiZTVmMmEyZTctMWYwNi00ZDgwLWI1NDUtYTA3NzJhMzFjYjQ2In0.VkRhjIvtknm8l-GwYJ9xGSE5Ql4CDozGFMrUlHkaYz8'
-            },
-            body: JSON.stringify({
-              model: 'gpt-oss:20b',
-              messages: [{ role: 'user', content: filledPrompt }],
-              stream: false
-            })
-          });
+        const startTime = Date.now();
 
-          if (!llmResponse.ok) {
-            const errorText = await llmResponse.text();
-            throw new Error(`LLM API error for ${ticker}: ${llmResponse.status} - ${errorText.slice(0, 200)}`);
-          }
+        const llmResponse = await fetch('http://localhost:8080/api/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZhNGZmZDlmLTdhZWQtNDdlOS1hZGZlLWU2OGI2ZGYzNWMxMiIsImV4cCI6MTc3MTEwMDE0NywianRpIjoiZTVmMmEyZTctMWYwNi00ZDgwLWI1NDUtYTA3NzJhMzFjYjQ2In0.VkRhjIvtknm8l-GwYJ9xGSE5Ql4CDozGFMrUlHkaYz8'
+          },
+          body: JSON.stringify({
+            model: 'gpt-oss:20b',
+            messages: [{ role: 'user', content: filledPrompt }],
+            stream: false
+          })
+        });
 
-          const llmData = await llmResponse.json();
-          const generatedThesis = llmData.choices?.[0]?.message?.content || llmData.response;
-
-          console.log(`✅ Thesis generated for ${ticker} (${company_name})`);
-
-          await fetch()
-
-          return {
-            ticker,
-            company_name,
-            thesis: generatedThesis,
-            status: 'success'
-          };
-
-        } catch (error) {
-          console.error(`❌ Error processing ${stock.ticker}:`, error.message);
-          return {
-            ticker: stock.ticker,
-            company_name: stock.company_name,
-            error: error.message,
-            status: 'failed'
-          };
+        if (!llmResponse.ok) {
+          const errorText = await llmResponse.text();
+          throw new Error(`API ${llmResponse.status}: ${errorText.slice(0, 200)}`);
         }
-      })
-    );
 
-    // Separar éxitos y fallos
+        const llmData = await llmResponse.json();
+        const generatedThesis = llmData.choices?.[0]?.message?.content || llmData.response;
+
+        const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(`✅ ${ticker} completed in ${elapsedTime}s`);
+
+        await fetch(`https://api.invesion.com/stocks/thesis/${company_id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: generatedThesis
+          })
+        });
+
+        results.push({
+          ticker,
+          company_name,
+          thesis: generatedThesis,
+          status: 'success',
+          processingTime: elapsedTime
+        });
+
+      } catch (error) {
+        console.error(`❌ Error processing ${ticker}:`, error.message);
+        results.push({
+          ticker,
+          company_name,
+          error: error.message,
+          status: 'failed'
+        });
+      }
+    }
+
+    // Summary
     const successful = results.filter(r => r.status === 'success');
     const failed = results.filter(r => r.status === 'failed');
 
-    console.log(`\n📊 Summary: ${successful.length} succeeded, ${failed.length} failed`);
+    console.log(`\n📊 FINAL SUMMARY:`);
+    console.log(`   ✅ Successful: ${successful.length}`);
+    console.log(`   ❌ Failed: ${failed.length}`);
+    console.log(`   ⏱️  Total time: ${results.reduce((sum, r) => sum + parseFloat(r.processingTime || 0), 0).toFixed(2)}s\n`);
 
     res.json({
-      message: `Processed ${results.length} stocks`,
+      message: `Processed ${results.length} stocks sequentially`,
       successful: successful.length,
       failed: failed.length,
       results
@@ -903,6 +922,7 @@ Adopta **long-term institutional investor mindset** enfocado en:
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 
