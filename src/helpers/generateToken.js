@@ -10,9 +10,8 @@ export const generateToken = (res, username, isAdmin, userId) => {
 
   res.cookie('x-token', token, {
     httpOnly: true,
-    // secure: process.env.NODE_ENV === 'production',
-    secure: true,
-    sameSite: 'None',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Lax',
     maxAge: 24 * 60 * 60 * 1000 // 1 día
   })
 }
