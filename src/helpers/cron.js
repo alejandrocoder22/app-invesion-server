@@ -35,6 +35,7 @@ const allNonUsaStocks = [
   { ticker: "VID", symbol: "VID.MC", yahoo: true },
   { ticker: "OLVAS", symbol: "OLVAS.HE", yahoo: true },
   { ticker: "CSU", symbol: "CNSWF", yahoo: true },
+  { ticker: "OR", symbol: "OR.PA", yahoo: true },
 ];
 export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
