@@ -756,120 +756,130 @@ const getIndustries = async (req, res) => res.send(industries);
 
 
 const createThesisWithLLM = async (req, res) => {
-  const { ticker } = req.params;
-  const { company } = req.body;
 
-  // Tu template completo aquí (copia el prompt entero)
-  const PROMPT_TEMPLATE = `Actúa como senior financial analyst sin preámbulos. Responde **solo** con la estructura exacta, sin repetir preguntas del prompt, con **5-10 oraciones bien desarrolladas por subsección** (evita condensar a 1-2; explica con datos, trends y contexto del filing).  Usa párrafos fluidos **y bullets para claridad de los puntos más importantes**, mantén profesional tone.
 
-Tu análisis debe ser **data-driven**, basado en **official financial filings**, **conservative en assumptions**, y enfocado en **capital preservation y sustainable value creation**. **Sin añadir ninguna cita al texto ni meciones a la misma con [1], [2] o similares**. **Si hay algunas siglas en el texto al menos una vez menciona entre parentesus a que se refieren. Por ejemplo,  AUM (Assets Under Management)**
+const response = await fetch('https://api.invesion.com/stocks/null-thesis/null')
 
-Perform a full analysis of **{{Company}} ({{Ticker}})** siguiendo **strictly** la estructura y secuencia **y responde en español**.
+const nullThesisData = await response.json()
 
-Prioriza información si la encuentras de los siguientes recursos:
+Promise.all(nullThesisData.map )
 
-1. Identify the current year based on today’s date.  
-2. Locate the **most recent 10-Q** from the current year.  
-3. If no current-year 10-Q is available, use the **most recent 10-K** instead.  
 
-## Business Analysis
 
-### Company Overview
+// const { ticker } = req.params;
+// const { company } = req.body;
 
-Proporciona descripción clara de core products y services, enfatizando qué drives long-term shareholder value.
 
-### How Does It Make Money?
+// const PROMPT_TEMPLATE = `Actúa como senior financial analyst sin preámbulos. Responde **solo** con la estructura exacta, sin repetir preguntas del prompt, con **5-10 oraciones bien desarrolladas por subsección** (evita condensar a 1-2; explica con datos, trends y contexto del filing).  Usa párrafos fluidos **y bullets para claridad de los puntos más importantes**, mantén profesional tone.
 
-Detalla revenue streams y operating segments, de más a menos importante, con % contribution si available.
+// Tu análisis debe ser **data-driven**, basado en **official financial filings**, **conservative en assumptions**, y enfocado en **capital preservation y sustainable value creation**. **Sin añadir ninguna cita al texto ni meciones a la misma con [1], [2] o similares**. **Si hay algunas siglas en el texto al menos una vez menciona entre parentesus a que se refieren. Por ejemplo,  AUM (Assets Under Management)**
 
-### Key Performance Indicators (KPIs)
+// Perform a full analysis of **{{Company}} ({{Ticker}})** siguiendo **strictly** la estructura y secuencia **y responde en español**.
 
-Lista y explica main metrics que management reports para medir performance y efficiency.
+// Prioriza información si la encuentras de los siguientes recursos:
 
-### Customers
+// 1. Identify the current year based on today’s date.  
+// 2. Locate the **most recent 10-Q** from the current year.  
+// 3. If no current-year 10-Q is available, use the **most recent 10-K** instead.  
 
-Identifica main customer segments. Comenta customer concentration risk si material.
+// ## Business Analysis
 
-### Competitors
+// ### Company Overview
 
-Lista key direct competitors y assessment breve de competitive positioning y differentiation.
+// Proporciona descripción clara de core products y services, enfatizando qué drives long-term shareholder value.
 
-### Geographic Exposure
+// ### How Does It Make Money?
 
-Proporciona breakdown, e.g.:  
-- North America: XX%  
-- Europe: XX%  
-- Asia-Pacific: XX%
+// Detalla revenue streams y operating segments, de más a menos importante, con % contribution si available.
 
-### Revenue Recurrence
+// ### Key Performance Indicators (KPIs)
 
-Explica nature de revenues (recurring, subscription, etc.). Incluye renewal rates, retention, contract duration o switching costs si available.
+// Lista y explica main metrics que management reports para medir performance y efficiency.
 
-### Pricing Power
+// ### Customers
 
-Assess ability to raise prices, supported by:  
-- Historical gross/operating margins trends.  
-- Management commentary.  
-- Evidence from inflationary periods.  
-- Risks to margin stability.
+// Identifica main customer segments. Comenta customer concentration risk si material.
 
-### Recession Sensitivity
+// ### Competitors
 
-Analiza performance en downturns: cyclicality, historical en recessions, management guidance.
+// Lista key direct competitors y assessment breve de competitive positioning y differentiation.
 
-### Capital Structure and Debt
+// ### Geographic Exposure
 
-Evalúa balance sheet y leverage:  
-- Total debt.  
-- Maturity profile.  
-- Fixed vs. floating.  
-- Average cost.  
-- Vs. cash y FCF.
+// Proporciona breakdown, e.g.:  
+// - North America: XX%  
+// - Europe: XX%  
+// - Asia-Pacific: XX%
 
-## Analyst Mindset
+// ### Revenue Recurrence
 
-Adopta **long-term institutional investor mindset** enfocado en:  
-- Business quality y durability of moats.  
-- FCF stability.  
-- Balance sheet strength.  
-- Compounding potential.`;
+// Explica nature de revenues (recurring, subscription, etc.). Incluye renewal rates, retention, contract duration o switching costs si available.
 
-  try {
-    const fillTemplate = (template, vars) => 
-      template.replace(/\{\{(.*?)\}\}/g, (_, v) => vars[v.trim()] || '');
+// ### Pricing Power
 
-    const filledPrompt = fillTemplate(PROMPT_TEMPLATE, { Company: company, Ticker: ticker });
+// Assess ability to raise prices, supported by:  
+// - Historical gross/operating margins trends.  
+// - Management commentary.  
+// - Evidence from inflationary periods.  
+// - Risks to margin stability.
 
-    // ✅ PAYLOAD MÍNIMO que funciona en Open-WebUI
-    const response = await fetch('http://localhost:8080/api/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZhNGZmZDlmLTdhZWQtNDdlOS1hZGZlLWU2OGI2ZGYzNWMxMiIsImV4cCI6MTc3MTEwMDE0NywianRpIjoiZTVmMmEyZTctMWYwNi00ZDgwLWI1NDUtYTA3NzJhMzFjYjQ2In0.VkRhjIvtknm8l-GwYJ9xGSE5Ql4CDozGFMrUlHkaYz8'
-      },
-      body: JSON.stringify({
-        model: 'gpt-oss:20b',  // ✅ Verifica que existe en Open-WebUI
-        messages: [{ role: 'user', content: filledPrompt }],
-        stream: false      // ✅ Quita features hasta debuggear
-      })
-    });
+// ### Recession Sensitivity
 
-    // DEBUG: Ver respuesta cruda
-    const rawResponse = await response.text();
-    console.log('Status:', response.status);
-    console.log('Raw response:', rawResponse.slice(0, 500));
+// Analiza performance en downturns: cyclicality, historical en recessions, management guidance.
 
-    if (!response.ok) {
-      throw new Error(`API ${response.status}: ${rawResponse.slice(0, 200)}`);
-    }
+// ### Capital Structure and Debt
 
-    const data = JSON.parse(rawResponse);
-    res.json(data);
+// Evalúa balance sheet y leverage:  
+// - Total debt.  
+// - Maturity profile.  
+// - Fixed vs. floating.  
+// - Average cost.  
+// - Vs. cash y FCF.
 
-  } catch (error) {
-    console.error('FULL ERROR:', error);
-    res.status(500).json({ error: error.message });
-  }
+// ## Analyst Mindset
+
+// Adopta **long-term institutional investor mindset** enfocado en:  
+// - Business quality y durability of moats.  
+// - FCF stability.  
+// - Balance sheet strength.  
+// - Compounding potential.`;
+
+//   try {
+//     const fillTemplate = (template, vars) => 
+//       template.replace(/\{\{(.*?)\}\}/g, (_, v) => vars[v.trim()] || '');
+
+//     const filledPrompt = fillTemplate(PROMPT_TEMPLATE, { Company: company, Ticker: ticker });
+
+//     // ✅ PAYLOAD MÍNIMO que funciona en Open-WebUI
+//     const response = await fetch('http://localhost:8080/api/chat/completions', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZhNGZmZDlmLTdhZWQtNDdlOS1hZGZlLWU2OGI2ZGYzNWMxMiIsImV4cCI6MTc3MTEwMDE0NywianRpIjoiZTVmMmEyZTctMWYwNi00ZDgwLWI1NDUtYTA3NzJhMzFjYjQ2In0.VkRhjIvtknm8l-GwYJ9xGSE5Ql4CDozGFMrUlHkaYz8'
+//       },
+//       body: JSON.stringify({
+//         model: 'gpt-oss:20b',  // ✅ Verifica que existe en Open-WebUI
+//         messages: [{ role: 'user', content: filledPrompt }],
+//         stream: false      // ✅ Quita features hasta debuggear
+//       })
+//     });
+
+//     // DEBUG: Ver respuesta cruda
+//     const rawResponse = await response.text();
+//     console.log('Status:', response.status);
+//     console.log('Raw response:', rawResponse.slice(0, 500));
+
+//     if (!response.ok) {
+//       throw new Error(`API ${response.status}: ${rawResponse.slice(0, 200)}`);
+//     }
+
+//     const data = JSON.parse(rawResponse);
+//     res.json(data);
+
+//   } catch (error) {
+//     console.error('FULL ERROR:', error);
+//     res.status(500).json({ error: error.message });
+//   }
 };
 
 
@@ -877,7 +887,7 @@ Adopta **long-term institutional investor mindset** enfocado en:
 
 
 const getNullThesis = async (req,res ) => {
-  const result = await pool.query('SELECT ticker FROM company_info where thesis ISNULL')
+  const result = await pool.query('SELECT ticker, company_name FROM company_info where thesis ISNULL')
 
   res.status(200).send(result.rows)
 }
