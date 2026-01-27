@@ -48,7 +48,7 @@ router.post('/', validateAdmin, stockControllers.createCompanyInfo)
 router.post('/year/:companyId', validateAdmin, stockControllers.addNewYear)
 router.post('/thesis/:companyId', validateAdmin, validateThesis, stockControllers.createThesis)
 router.post('/portfolio/:companyId/:futurePrice', validateToken, stockControllers.addToPortfolio)
-router.post('/thesis-llm/:ticker', validateToken, stockControllers.createThesisWithLLM)
+router.post('/thesis-llm/:ticker', stockControllers.createThesisWithLLM)
 
 // Cron tasks
 
