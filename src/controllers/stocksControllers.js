@@ -617,14 +617,14 @@ const upsertEstimations = async (req, res, next) => {
   INSERT INTO stock_estimations (
     company_id, year, revenue, operating_income, interest_expense,
     capital_expenditures, depreciation_and_amortization,
-    reported_change_in_working_capital, diluted_shares_outstanding,
+    reported_change_in_working_capital,
     dividends_per_share, net_income, sale_of_assets,
     simple_free_cash_flow, tax_rate, cost_of_debt,
     net_debt_issued, equity, net_repurchased_shares, stocks_compensations,
     discount, ebit_multiple, fair_multiple, midterm_growth,
     roe_mid, terminal_rate, interest_income, accounts_receivable, inventories, prepaid_expenses,accounts_payable,accrued_expenses,total_unearned_revenues, operating_cash_flow, other_net_operating_assets
   )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33)
 
   ON CONFLICT (company_id, year)
   DO UPDATE SET
@@ -634,7 +634,6 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $
     capital_expenditures = EXCLUDED.capital_expenditures,
     depreciation_and_amortization = EXCLUDED.depreciation_and_amortization,
     reported_change_in_working_capital = EXCLUDED.reported_change_in_working_capital,
-    diluted_shares_outstanding = EXCLUDED.diluted_shares_outstanding,
     dividends_per_share = EXCLUDED.dividends_per_share,
     net_income = EXCLUDED.net_income,
     sale_of_assets = EXCLUDED.sale_of_assets,
@@ -673,7 +672,6 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $
         estimation.capital_expenditures || 0,
         estimation.depreciation_and_amortization || 0,
         estimation.reported_change_in_working_capital || 0,
-        estimation.diluted_shares_outstanding || 0,
         estimation.dividends_per_share || 0,
         estimation.net_income || 0,
         estimation.sale_of_assets || 0,

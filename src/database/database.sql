@@ -220,7 +220,6 @@ CREATE TABLE stock_estimations (
   capital_expenditures NUMERIC(12, 2),
   depreciation_and_amortization NUMERIC(12, 2),
   reported_change_in_working_capital NUMERIC(12, 2),
-  diluted_shares_outstanding NUMERIC(12, 2),
   dividends_per_share NUMERIC(12, 2),
   net_income NUMERIC(12, 2),
   sale_of_assets NUMERIC(12, 2),
