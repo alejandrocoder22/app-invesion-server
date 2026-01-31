@@ -1016,7 +1016,7 @@ export const preparationForHistoricMetrics = (
   const debtToEquity = calculateDebtToEquity(total_debt, equity);
   const netMargin = getNetMargin(stockHistoric);
   const grossMargin = calculateGrossMargin(stockHistoric);
-  const freeCashFlow = calculateRealFcf(stockHistoric);
+  const freeCashFlow = calculateSimpleFcf(stockHistoric);
   const fcfMargin = calculateFcfMargin(freeCashFlow, revenue);
   const ebitdaMargin = calculateEbitdaMargin(
     revenue,
