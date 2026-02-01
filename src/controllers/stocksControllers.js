@@ -510,10 +510,33 @@ const createThesis = async (req, res, next) => {
   }
 };
 
+const createModelingNote = async (req, res, next) => {
+  const { note } = req.body;
+  const { companyId } = req.params;
+  try {
+    await stocksServices.createModelingNote (companyId, note);
+    res.send({ status: "SUCESS", message: "Post added" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getThesis = async (req, res, next) => {
   try {
     const { companyId } = req.params;
     const md = await stocksServices.getThesis(companyId);
+
+    res.send({ status: "SUCESS", data: md[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getModelingNote = async (req, res, next) => {
+  try {
+    const { companyId } = req.params;
+    const md = await stocksServices.getModelingNote(companyId);
+
 
     res.send({ status: "SUCESS", data: md[0] });
   } catch (error) {
@@ -957,6 +980,7 @@ export default {
   getAllStocksPrice,
   createThesis,
   createThesisWithLLM,
+  createModelingNote,
   getThesis,
   getAllTickers,
   deleteStockFromPortfolio,
@@ -969,5 +993,6 @@ export default {
   upsertEstimations,
   getEstimations,
   getHistoricMetrics,
-  getNullThesis
+  getNullThesis,
+  getModelingNote
 };

@@ -1440,6 +1440,25 @@ const createThesis = async (companyId, text) => {
   }
 };
 
+const createModelingNote = async (companyId, text) => {
+
+  try {
+    await query(
+      `
+      UPDATE company_info 
+      SET modeling_notes = $2
+      WHERE company_id = $1
+      `,
+      [companyId, text]
+    );
+  } catch (error) {
+    console.error("Error updating modeling_note:", error);
+    throw error;
+  }
+};
+
+
+
 const getThesis = async (companyId) =>
   query(
     `
@@ -1453,6 +1472,23 @@ FROM
 
 WHERE
     ci.company_id = $1;
+ 
+  
+  `,
+    [companyId]
+  );
+
+const getModelingNote = async (companyId) =>
+  query(
+    `
+  
+SELECT
+    modeling_notes
+FROM
+    company_info 
+
+WHERE
+    company_id = $1;
  
   
   `,
@@ -1773,4 +1809,6 @@ export default {
   createHistoricMetrics,
   getHistoricMetrics,
   updateHistoricMetrics,
+  createModelingNote,
+  getModelingNote
 };

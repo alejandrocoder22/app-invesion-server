@@ -11,6 +11,7 @@ CREATE TABLE company_info (
     industry VARCHAR(75),
     currency VARCHAR(10),
     thesis TEXT,
+    modeling_notes TEXT,
     default_estimated_price_in_five_years NUMERIC(10,4),
     default_dcf_estimated_price NUMERIC(10,4),
     projected_dividends JSONB, 
