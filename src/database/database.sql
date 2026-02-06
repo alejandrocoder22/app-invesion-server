@@ -219,6 +219,7 @@ CREATE TABLE stock_estimations (
   accrued_expenses NUMERIC(12, 2),
   total_unearned_revenues NUMERIC(12, 2),
   capital_expenditures NUMERIC(12, 2),
+  maintenance_capital_expenditures NUMERIC(12,2),
   depreciation_and_amortization NUMERIC(12, 2),
   reported_change_in_working_capital NUMERIC(12, 2),
   dividends_per_share NUMERIC(12, 2),
